@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Build release binaries
+        run: |
+          cargo build --release -p rspfdisk-cli
+          cargo build --release -p rspfdisk-tui
+
+      - name: Build UEFI app
+        run: |
+          rustup target add x86_64-unknown-uefi
+          cargo build -p rspfdisk-uefi --release --target x86_64-unknown-uefi
+          # Copy UEFI binary to dist/
+          mkdir -p dist/EFI/BOOT
+          cp target/x86_64-unknown-uefi/release/rspfdisk-uefi.efi dist/EFI/BOOT/BOOTX64.EFI
+
+      - name: Run tests
+        run: |
+          cargo test --workspace
+          cargo test -p rspfdisk-uefi
+
+      - name: Build release tarball
+        run: |
+          VERSION="${{ github.ref_name }}"
+          ARCH="linux-x86_64"
+          DIR="rspfdisk-${VERSION}-${ARCH}"
+
+          mkdir -p "${DIR}"
+
+          # Binaries
+          cp target/release/rspfdisk     "${DIR}/"
+          cp target/release/rspfdisk-tui "${DIR}/"
+
+          # Templates
+          mkdir -p "${DIR}/templates"
+          cp templates/*.toml "${DIR}/templates/"
+
+          # Boot media
+          if [ -d boot ]; then
+            cp -r boot "${DIR}/boot"
+          fi
+
+          # Tools (scripts only)
+          mkdir -p "${DIR}/tools"
+          cp tools/*.sh        "${DIR}/tools/" 2>/dev/null || true
+          cp tools/lib/*.sh    "${DIR}/tools/lib/" 2>/dev/null || true
+
+          # UEFI binary
+          if [ -d dist/EFI ]; then
+            mkdir -p "${DIR}/dist"
+            cp -r dist/EFI "${DIR}/dist/"
+          fi
+
+          # Docs
+          cp README.md          "${DIR}/"
+          cp README-zh-TW.md    "${DIR}/" 2>/dev/null || true
+          cp CHANGELOG.md       "${DIR}/"
+          cp spec.md            "${DIR}/"
+          cp plan.md            "${DIR}/"
+          cp test.md            "${DIR}/"
+
+          # Create tarball
+          tar czf "${DIR}.tar.gz" "${DIR}"
+          echo "TARBALL=${DIR}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Generate checksums
+        run: |
+          sha256sum "${{ env.TARBALL }}" > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ github.ref_name }}"
+          gh release create "${VERSION}" \
+            --title "rspfdisk ${VERSION}" \
+            --notes "See [CHANGELOG.md](CHANGELOG.md) for details." \
+            "${{ env.TARBALL }}" SHA256SUMS
