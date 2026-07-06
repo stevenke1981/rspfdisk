@@ -1,0 +1,14 @@
+Rust SPFDisk — Layout Preview
+
+Template: Linux UEFI ext4 + 獨立 /home
+Disk: /dev/sdb 512 GiB GPT
+Mode: dry-run
+
+Changes:
++ Create GPT
++ Partition 1: EFI System   512 MiB  FAT32 /boot/efi
++ Partition 2: Linux Root   80 GiB   ext4  /
++ Partition 3: Linux Swap   8 GiB    swap
++ Partition 4: Linux Home   423 GiB  ext4  /home
+
+No write performed.

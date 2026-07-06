@@ -1,0 +1,14 @@
+[package]
+name = "rspfdisk-safety"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rspfdisk-core = { path = "../rspfdisk-core" }
+rspfdisk-disk = { path = "../rspfdisk-disk" }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

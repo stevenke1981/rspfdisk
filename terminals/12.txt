@@ -1,0 +1,65 @@
+---
+pid: 15816
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo test --workspace -- --test-threads=2"
+started_at: 2026-07-06T03:59:45.303Z
+running_for_ms: 33720013 
+---
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_backup-78c1b4ad64a02111.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk-e6bb1e87f3252fa0.exe)
+     Running tests\boot_media_tests.rs (target\debug\deps\boot_media_tests-5bd05bd07e9eba41.exe)
+     Running tests\golden_layout_tests.rs (target\debug\deps\golden_layout_tests-a2a10d9e33219e0f.exe)
+     Running
+ tests\integration_tests.rs (target\debug\deps\integration_tests-d666eb5118175abc.exe)
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test boot_media_files_exist ... ok
+test grub_cfg_references_initramfs ... ok
+test init_script_launches_tui ... ok
+test qemu_ps1_supports_validate_only ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test golden_windows_standard_layout has been running for over 60 seconds
+test golden_windows_standard_layout ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 171.99s
+
+
+running 2 tests
+test layout_dry_run_windows ... FAILED
+test layout_write_and_inspect ... FAILED
+
+failures:
+
+---- layout_dry_run_windows stdout ----
+
+thread 'layout_dry_run_windows' (6780) panicked at crates\rspfdisk-cli\tests\integration_tests.rs:20:10:
+called `Result::unwrap()` on an `Err` value: Os { code: 112, kind: StorageFull, message: "磁�??空?�?足�? }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- layout_write_and_inspect stdout ----
+
+thread 'layout_write_and_inspect' (10792) panicked at crates\rspfdisk-cli\tests\integration_tests.rs:47:10:
+called `Result::unwrap()` on an `Err` value: Os { code: 112, kind: StorageFull, message: "磁�??空?�?足�? }
+
+
+failures:
+    layout_dry_run_windows
+    layout_write_and_inspect
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p rspfdisk-cli --test integration_tests`

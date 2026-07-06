@@ -1,0 +1,17 @@
+---
+pid: 2612
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo test -p rspfdisk-cli --test golden_layout_tests"
+started_at: 2026-07-06T03:54:18.857Z
+running_for_ms: 34045005 
+---
+   Compiling rspfdisk-cli v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.80s
+     Running tests\golden_layout_tests.rs (target\debug\deps\golden_layout_tests-a2a10d9e33219e0f.exe)
+
+running 1 test
+test golden_windows_standard_layout has been running for over 60 seconds
+test golden_windows_standard_layout ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 170.61s
+

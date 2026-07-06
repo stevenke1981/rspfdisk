@@ -1,0 +1,22 @@
+[package]
+name = "rspfdisk-uefi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "UEFI read-only GPT viewer PoC (BOOTX64.EFI)"
+
+[[bin]]
+name = "BOOTX64"
+path = "src/main.rs"
+test = false
+bench = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+log = { workspace = true }
+
+[target.'cfg(target_os = "uefi")'.dependencies]
+uefi = { workspace = true }
+

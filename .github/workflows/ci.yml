@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --workspace -- -D warnings
+      - run: cargo test --workspace
+      - run: cargo test --workspace -- --include-ignored
+
+  boot-media-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: chmod +x tools/*.sh tools/lib/*.sh boot/initramfs/init
+      - run: bash tools/qemu-test.sh --validate-only
+
+  uefi-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: rustup target add x86_64-unknown-uefi
+      - run: cargo build -p rspfdisk-uefi --release --target x86_64-unknown-uefi
+      - run: cargo test -p rspfdisk-uefi

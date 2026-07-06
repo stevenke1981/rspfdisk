@@ -1,0 +1,322 @@
+---
+pid: 14872
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo test --workspace"
+started_at: 2026-07-06T02:13:13.403Z
+running_for_ms: 40110006 
+---
+   Compiling cfg-if v1.0.4
+   Compiling serde_core v1.0.228
+   Compiling windows-link v0.2.1
+   Compiling itoa v1.0.18
+   Compiling zmij v1.0.21
+   Compiling memchr v2.8.2
+   Compiling thiserror v1.0.69
+   Compiling equivalent v1.0.2
+   Compiling typenum v1.20.1
+   Compiling hex v0.4.3
+   Compiling smallvec v1.15.2
+   Compiling scopeguard v1.2.0
+   Compiling winapi v0.3.9
+   Compiling utf8parse v0.2.2
+   Compiling foldhash v0.1.5
+   Compiling either v1.16.0
+   Compiling getrandom v0.4.3
+   Compiling windows-sys v0.61.2
+   Compiling lock_api v0.4.14
+   Compiling allocator-api2 v0.2.21
+   Compiling once_cell_polyfill v1.70.2
+   Compiling hashbrown v0.17.1
+   Compiling parking_lot_core v0.9.12
+   Compiling anstyle v1.0.14
+   Compiling anstyle-parse v1.0.0
+   Compiling itertools v0.13.0
+   Compiling castaway v0.2.4
+   Compiling num-traits v0.2.19
+   Compiling winnow v0.7.15
+   Compiling cpufeatures v0.2.17
+   Compiling ryu v1.0.23
+   Compiling bitflags v2.13.0
+   Compiling colorchoice v1.0.5
+   Compiling unicode-width v0.1.14
+   Compiling parking_lot v0.12.5
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling hashbrown v0.15.5
+   Compiling unicode-segmentation v1.13.3
+   Compiling toml_write v0.1.2
+   Compiling static_assertions v1.1.0
+   Compiling crc32fast v1.5.0
+   Compiling generic-array v0.14.7
+   Compiling compact_str v0.8.2
+   Compiling indexmap v2.14.0
+   Compiling strum v0.26.3
+   Compiling strsim v0.11.1
+   Compiling unicode-width v0.2.0
+   Compiling cassowary v0.3.0
+   Compiling anstyle-query v1.1.5
+   Compiling anstyle-wincon v3.0.11
+   Compiling clap_lex v1.1.0
+   Compiling lru v0.12.5
+   Compiling anstream v1.0.0
+   Compiling anyhow v1.0.103
+   Compiling rspfdisk-uefi v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi)
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling rspfdisk-cli v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli)
+warning: unused import: `WritableBlockDevice`
+ --> crates\rspfdisk-gpt\tests\gpt_tests.rs:2:70
+  |
+2 | use rspfdisk_disk::{create_test_image, BlockDevice, FileBlockDevice, WritableBlockDevice};
+  |                                                                      ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `rspfdisk-gpt` (test "gpt_tests") generated 1 warning (run `cargo fix --test "gpt_tests" -p rspfdisk-gpt` to apply 1 suggestion)
+   Compiling digest v0.10.7
+   Compiling clap_builder v4.6.0
+   Compiling sha2 v0.10.9
+   Compiling unicode-truncate v1.1.0
+   Compiling serde v1.0.228
+   Compiling serde_json v1.0.150
+   Compiling uuid v1.23.4
+   Compiling crossterm_winapi v0.9.1
+   Compiling crossterm v0.28.1
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling chrono v0.4.45
+   Compiling rspfdisk-core v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-core)
+   Compiling toml_edit v0.22.27
+   Compiling rspfdisk-disk v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk)
+   Compiling rspfdisk-mbr v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-mbr)
+   Compiling rspfdisk-gpt v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-gpt)
+   Compiling ratatui v0.29.0
+   Compiling rspfdisk-safety v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-safety)
+   Compiling rspfdisk-backup v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-backup)
+   Compiling clap v4.6.1
+   Compiling toml v0.8.23
+   Compiling rspfdisk-layouts v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-layouts)
+   Compiling rspfdisk-tui v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-tui)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.27s
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_backup-78c1b4ad64a02111.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk-e6bb1e87f3252fa0.exe)
+     Running tests\boot_media_tests.rs (target\debug\deps\boot_media_tests-5bd05bd07e9eba41.exe)
+     Running tests\integration_tests.rs (target\debug\deps\integration_tests-d666eb5118175abc.exe)
+     Running tests\uefi_poc_tests.rs (target\debug\deps\uefi_poc_tests-7ae719f90e31c728.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_core-30ffc6fc5900fea3.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_disk-a6a4daf2e85d2943.exe)
+     Running tests\disk_tests.rs (target\debug\deps\disk_tests-053dac1ec460a6ea.exe)
+     Running tests\path_kind_tests.rs (target\debug\deps\path_kind_tests-c709cec092e4491d.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_gpt-9bc17abbf720e84d.exe)
+     Running tests\gpt_tests.rs (target\debug\deps\gpt_tests-d91f2199dbb1f981.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_layouts-5a9cd5d330888392.exe)
+     Running tests\layout_tests.rs (target\debug\deps\layout_tests-38b1c680ca0e2692.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_mbr-33ee63718a0e3b73.exe)
+     Running tests\mbr_tests.rs (target\debug\deps\mbr_tests-b3d9b2b7a1ebf9c1.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_safety-4af54ed066ff42e0.exe)
+     Running tests\danger_tests.rs (target\debug\deps\danger_tests-76bbf467a49c5995.exe)
+     Running tests\safety_tests.rs (target\debug\deps\safety_tests-ca88d1c6068b53f5.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_tui-c00177535971d5b8.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk_tui-c354922b09bde86f.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_uefi-766bf72f4fa8216a.exe)
+     Running tests\gpt_nostd_tests.rs (target\debug\deps\gpt_nostd_tests-5536d80a7ad88906.exe)
+   Doc-tests rspfdisk_backup
+   Doc-tests rspfdisk_core
+   Doc-tests rspfdisk_disk
+   Doc-tests rspfdisk_gpt
+   Doc-tests rspfdisk_layouts
+   Doc-tests rspfdisk_mbr
+
+   Doc-tests rspfdisk_safety
+   Doc-tests rspfdisk_tui
+   Doc-tests rspfdisk_uefi
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test qemu_ps1_supports_validate_only ... ok
+test boot_media_files_exist ... ok
+test grub_cfg_references_initramfs ... ok
+test init_script_launches_tui ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test layout_dry_run_windows ... ok
+test layout_write_and_inspect ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.36s
+
+
+running 1 test
+test uefi_poc_files_exist ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test read_multiple_sectors ... ok
+test read_beyond_boundary_fails ... ok
+test sector_size_4096 ... ok
+test read_single_sector ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 4 tests
+test classify_image_file ... ok
+test whole_disk_write_candidates ... ok
+test classify_linux_block_device ... ok
+test linux_block_name_parsing ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test empty_image_has_no_gpt ... ok
+test write_and_read_gpt ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.54s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+test macos_apfs_no_format ... ok
+test linux_home_template ... ok
+test small_disk_rejection ... ok
+test windows_standard_template ... ok
+test template_registry_loads_all ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test empty_mbr ... ok
+test protective_mbr_write_and_read ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test image_is_low_risk ... ok
+test partition_write_blocked ... ok
+test removable_whole_disk_write_allowed ... ok
+test fixed_disk_is_high_risk ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test disk_phrase_from_path ... ok
+test wrong_phrase_denied ... ok
+test no_write_flag_denied ... ok
+test image_write_requires_confirmation_flag ... ok
+test image_write_with_flags_succeeds ... ok
+test real_disk_requires_confirm_phrase ... ok
+test real_disk_with_phrase_succeeds ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test reject_bad_signature ... ok
+test parse_minimal_gpt ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

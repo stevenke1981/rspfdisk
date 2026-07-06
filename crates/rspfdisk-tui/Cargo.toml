@@ -1,0 +1,15 @@
+[package]
+name = "rspfdisk-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "rspfdisk-tui"
+path = "src/main.rs"
+
+[dependencies]
+rspfdisk-core = { path = "../rspfdisk-core" }
+anyhow = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }

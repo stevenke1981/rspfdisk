@@ -1,0 +1,24 @@
+name = "windows_legacy_mbr"
+display_name = "Windows Legacy BIOS / MBR"
+table = "mbr"
+boot_mode = "bios"
+min_disk_size = "64GiB"
+
+[[partitions]]
+name = "System Reserved"
+size = "500MiB"
+type = "ntfs"
+filesystem = "none"
+flags = ["active"]
+
+[[partitions]]
+name = "Windows"
+size = "fill-minus:1GiB"
+type = "ntfs"
+filesystem = "none"
+
+[[partitions]]
+name = "Windows Recovery"
+size = "1GiB"
+type = "windows-recovery-mbr"
+filesystem = "none"

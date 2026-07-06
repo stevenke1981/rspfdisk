@@ -1,0 +1,31 @@
+name = "windows_uefi_standard"
+display_name = "Windows 11 / 10 UEFI 標準分區"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "8GiB"
+
+[[partitions]]
+name = "EFI System"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+flags = ["boot", "esp"]
+
+[[partitions]]
+name = "Microsoft Reserved"
+size = "16MiB"
+type = "msr"
+filesystem = "none"
+
+[[partitions]]
+name = "Windows"
+size = "fill-minus:1GiB"
+type = "microsoft-basic-data"
+filesystem = "none"
+note = "可由 Windows Setup 格式化為 NTFS"
+
+[[partitions]]
+name = "Windows Recovery"
+size = "1GiB"
+type = "windows-recovery"
+filesystem = "none"

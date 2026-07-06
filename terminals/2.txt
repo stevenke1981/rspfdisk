@@ -1,0 +1,27 @@
+---
+pid: 19864
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo run -p rspfdisk-cli -- layout windows-standard tests/images/test-empty.img --write --yes-i-know-this-is-an-image"
+started_at: 2026-07-06T01:17:16.615Z
+running_for_ms: 43465000 
+---
+   Compiling windows-sys v0.61.2
+   Compiling anstyle-wincon v3.0.11
+   Compiling anstyle-query v1.1.5
+   Compiling anstream v1.0.0
+   Compiling clap_builder v4.6.0
+   Compiling clap v4.6.1
+   Compiling rspfdisk-cli v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.32s
+     Running `target\debug\rspfdisk.exe layout windows-standard tests/images/test-empty.img --write --yes-i-know-this-is-an-image`
+已建立測�?image: tests/images/test-empty.img (8 GiB)
+Template: Windows 11 / 10 UEFI 標�??�?
+Table: Gpt
++ Create GPT
++ Partition: EFI System  512 MiB  fat32  Esp
++ Partition: Microsoft Reserved  16 MiB  none  Msr
++ Partition: Windows Recovery  1024 MiB  none  WindowsRecovery
+No write performed.
+已建立�?�? tests/images/test-empty.img.rspbak
+寫入完�??WriteToken disk_id=tests/images/test-empty.img
+驗�?: 讀??3 ?�??

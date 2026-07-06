@@ -1,0 +1,25 @@
+name = "macos_apfs_shared_exfat"
+display_name = "macOS APFS + 共用資料分區"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "128GiB"
+
+[[partitions]]
+name = "EFI"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+
+[[partitions]]
+name = "macOS"
+size = "300GiB"
+type = "apple-apfs"
+filesystem = "none"
+note = "使用者可調整容量"
+
+[[partitions]]
+name = "Shared Data"
+size = "fill"
+type = "basic-data"
+filesystem = "exfat"
+note = "Windows/macOS/Linux 共用資料用途"

@@ -1,0 +1,13 @@
+[package]
+name = "rspfdisk-mbr"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rspfdisk-core = { path = "../rspfdisk-core" }
+rspfdisk-disk = { path = "../rspfdisk-disk" }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

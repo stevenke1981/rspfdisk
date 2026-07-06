@@ -1,0 +1,25 @@
+[package]
+name = "rspfdisk-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "rspfdisk"
+path = "src/main.rs"
+
+[dependencies]
+rspfdisk-core = { path = "../rspfdisk-core" }
+rspfdisk-disk = { path = "../rspfdisk-disk" }
+rspfdisk-mbr = { path = "../rspfdisk-mbr" }
+rspfdisk-gpt = { path = "../rspfdisk-gpt" }
+rspfdisk-layouts = { path = "../rspfdisk-layouts" }
+rspfdisk-backup = { path = "../rspfdisk-backup" }
+rspfdisk-safety = { path = "../rspfdisk-safety" }
+rspfdisk-tui = { path = "../rspfdisk-tui" }
+clap = { workspace = true }
+anyhow = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

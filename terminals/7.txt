@@ -1,0 +1,53 @@
+---
+pid: 17324
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo test -p rspfdisk-gpt"
+started_at: 2026-07-06T02:16:48.179Z
+running_for_ms: 39895008 
+---
+   Compiling windows-sys v0.61.2
+   Compiling syn v2.0.118
+   Compiling tempfile v3.27.0
+   Compiling serde_derive v1.0.228
+   Compiling thiserror-impl v1.0.69
+   Compiling thiserror v1.0.69
+   Compiling serde v1.0.228
+   Compiling rspfdisk-core v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-core)
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling toml_edit v0.22.27
+   Compiling rspfdisk-disk v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk)
+   Compiling rspfdisk-mbr v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-mbr)
+   Compiling rspfdisk-gpt v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-gpt)
+   Compiling toml v0.8.23
+   Compiling rspfdisk-layouts v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-layouts)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 24.19s
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_gpt-a4ce06e0d00dab00.exe)
+     Running tests\gpt_negative_tests.rs (target\debug\deps\gpt_negative_tests-9725f7cea9946d83.exe)
+     Running tests\gpt_tests.rs (target\debug\deps\gpt_tests-774462e28e40bbbe.exe)
+   Doc-tests
+ rspfdisk_gpt
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test header_parse_rejects_short_buffer ... ok
+test invalid_header_crc ... ok
+test invalid_gpt_signature ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.95s
+
+
+running 2 tests
+test empty_image_has_no_gpt ... ok
+test write_and_read_gpt ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.05s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

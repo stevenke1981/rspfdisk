@@ -1,0 +1,32 @@
+---
+pid: 3536
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo clippy --workspace -- -D warnings"
+started_at: 2026-07-06T01:40:44.284Z
+running_for_ms: 42055000 
+---
+    Blocking waiting for file lock on build directory
+    Checking rspfdisk-disk v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk)
+    Checking rspfdisk-tui v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-tui)
+    Checking rspfdisk-mbr v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-mbr)
+    Checking rspfdisk-safety v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-safety)
+    Checking rspfdisk-gpt v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-gpt)
+    Checking rspfdisk-backup v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-backup)
+    Checking rspfdisk-cli v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli)
+error: this function has too many arguments (8/7)
+   --> crates\rspfdisk-cli\src\commands.rs:135:1
+    |
+135 | / pub fn layout(
+136 | |     template_name: &str,
+137 | |     path: &str,
+138 | |     dry_run: bool,
+...   |
+143 | |     root_size: Option<&str>,
+144 | | ) -> Result<()> {
+    | |_______________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+    = note: `-D clippy::too-many-arguments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_arguments)]`
+
+error: could not compile `rspfdisk-cli` (bin "rspfdisk") due to 1 previous error

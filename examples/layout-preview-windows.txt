@@ -1,0 +1,15 @@
+Rust SPFDisk — Layout Preview
+
+Template: Windows 11 / 10 + D 槽
+Disk: /dev/nvme0n1 512 GiB GPT
+Mode: dry-run
+
+Changes:
++ Create GPT
++ Partition 1: EFI System        512 MiB   FAT32  ESP
++ Partition 2: Microsoft Reserved 16 MiB   none   MSR
++ Partition 3: Windows           180 GiB   none   Microsoft Basic Data
++ Partition 4: Windows Recovery  1 GiB     none   Windows Recovery
++ Partition 5: Data              330 GiB   none   Microsoft Basic Data
+
+No write performed.

@@ -1,0 +1,564 @@
+---
+pid: 19332
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "pwsh -NoProfile -File tools/make-release.ps1"
+started_at: 2026-07-06T02:22:45.814Z
+running_for_ms: 39539996 
+---
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.16s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_backup-78c1b4ad64a02111.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk-e6bb1e87f3252fa0.exe)
+     Running tests\boot_media_tests.rs (target\debug\deps\boot_media_tests-5bd05bd07e9eba41.exe)
+     Running tests\integration_tests.rs (target\debug\deps\integration_tests-d666eb5118175abc.exe)
+     Running tests\uefi_poc_tests.rs (target\debug\deps\uefi_poc_tests-7ae719f90e31c728.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_core-30ffc6fc5900fea3.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_disk-a6a4daf2e85d2943.exe)
+     Running tests\disk_tests.rs (target\debug\deps\disk_tests-053dac1ec460a6ea.exe)
+     Running tests\path_kind_tests.rs (target\debug\deps\path_kind_tests-c709cec092e4491d.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_gpt-9bc17abbf720e84d.exe)
+     Running tests\gpt_negative_tests.rs (target\debug\deps\gpt_negative_tests-a215918bb82449f2.exe)
+     Running tests\gpt_tests.rs (target\debug\deps\gpt_tests-d91f2199dbb1f981.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_layouts-5a9cd5d330888392.exe)
+     Running tests\layout_tests.rs (target\debug\deps\layout_tests-38b1c680ca0e2692.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_mbr-33ee63718a0e3b73.exe)
+     Running tests\mbr_tests.rs (target\debug\deps\mbr_tests-b3d9b2b7a1ebf9c1.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_safety-4af54ed066ff42e0.exe)
+     Running tests\danger_tests.rs (target\debug\deps\danger_tests-76bbf467a49c5995.exe)
+     Running tests\safety_tests.rs (target\debug\deps\safety_tests-ca88d1c6068b53f5.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_tui-c00177535971d5b8.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk_tui-c354922b09bde86f.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_uefi-766bf72f4fa8216a.exe)
+     Running tests\gpt_nostd_tests.rs (target\debug\deps\gpt_nostd_tests-5536d80a7ad88906.exe)
+   Doc-tests rspfdisk_backup
+   Doc-tests rspfdisk_core
+   Doc-tests rspfdisk_disk
+   Doc-tests rspfdisk_gpt
+   Doc-tests rspfdisk_layouts
+   Doc-tests rspfdisk_mbr
+   Doc-tests rspfdisk_safety
+   Doc-tests rspfdisk_tui
+   Doc-tests rspfdisk_uefi
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_uefi-766bf72f4fa8216a.exe)
+     Running tests\gpt_nostd_tests.rs (target\debug\deps\gpt_nostd_tests-5536d80a7ad88906.exe)
+   Doc-tests rspfdisk_uefi
+[release] cargo fmt --check
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli\src\commands.rs:10:
+ use rspfdisk_gpt::{parse_gpt, validate_alignment, write_gpt_from_draft};
+ use rspfdisk_layouts::{build_diff_report, generate_layout, load_template, TemplateRegistry};
+ use rspfdisk_mbr::parse_mbr;
+-use rspfdisk_safety::{
+-    assess_disk, confirm_write, disk_confirmation_phrase, ConfirmationOptions,
+-};
++use rspfdisk_safety::{assess_disk, confirm_write, disk_confirmation_phrase, ConfirmationOptions};
+ 
+ pub fn list_disks() -> Result<()> {
+     let disks = list_block_devices().map_err(|e| anyhow!("{e}"))?;
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli\src\commands.rs:29:
+         let size_gib = disk.size_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
+         let model = disk.model.as_deref().unwrap_or("-");
+         let serial = disk.serial.as_deref().unwrap_or("-");
+-        let removable = if disk.removable { "?�卸?? } else { "?��?" };
++        let removable = if disk.removable {
++            "?�卸??
++        } else {
++            "?��?"
++        };
+         println!(
+             "  [{}] {}  {:.2} GiB  {}  {}  model={} serial={}",
+             i + 1,
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli\src\commands.rs:189:
+ 
+     if dry_run || !write {
+         if classify_path(path) == DevicePathKind::LinuxBlockDevice {
+-            println!("確�??�?（寫?��????--confirm {}�?, disk_confirmation_phrase(path));
++            println!(
++                "確�??�?（寫?��????--confirm {}�?,
++                disk_confirmation_phrase(path)
++            );
+         }
+         return Ok(());
+     }
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli\src\commands.rs:285:
+ fn parse_root_size(s: &str) -> Result<u64> {
+     rspfdisk_layouts::size::parse_byte_size(s).map_err(|e| anyhow!("{e}"))
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli\tests\boot_media_tests.rs:44:
+ 
+ #[test]
+ fn qemu_ps1_supports_validate_only() {
+-    let script =
+-        std::fs::read_to_string(project_root().join("tools/qemu-test.ps1")).unwrap();
++    let script = std::fs::read_to_string(project_root().join("tools/qemu-test.ps1")).unwrap();
+     assert!(script.contains("ValidateOnly"));
+     assert!(script.contains("qemu-system-x86_64"));
+ }
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli\tests\boot_media_tests.rs:52:
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli\tests\uefi_poc_tests.rs:21:
+         assert!(root.join(rel).exists(), "missing {rel}");
+     }
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\device_handle.rs:74:
+         }
+     }
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\lib.rs:32:
+ pub use scan::list_block_devices;
+ pub use sector_buf::SectorBuf;
+ pub use test_helpers::create_test_image;
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\linux_device.rs:126:
+         Ok(())
+     }
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\linux_permissions.rs:14:
+         ))
+     }
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\linux_scan.rs:55:
+     }
+     false
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\linux_sysfs.rs:23:
+ 
+ pub fn read_sysfs_u64(path: impl AsRef<Path>) -> DiskResult<u64> {
+     let raw = fs::read_to_string(path.as_ref())?;
+-    raw.trim()
+-        .parse::<u64>()
+-        .map_err(|_| DiskError::InvalidBlockPath(format!("bad sysfs value at {}", path.as_ref().display())))
++    raw.trim().parse::<u64>().map_err(|_| {
++        DiskError::InvalidBlockPath(format!("bad sysfs value at {}", path.as_ref().display()))
++    })
+ }
+ 
+ pub fn read_sysfs_string(path: impl AsRef<Path>) -> Option<String> {
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\linux_sysfs.rs:82:
+         read_only,
+     })
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\open.rs:14:
+     let path = path.as_ref();
+     let path_str = path.to_string_lossy();
+     match classify_path(&path_str) {
+-        DevicePathKind::ImageFile | DevicePathKind::Unknown => {
+-            Ok(DeviceHandle::File(FileBlockDevice::open_read_only(
+-                path,
+-                SectorSize::S512,
+-            )?))
+-        }
++        DevicePathKind::ImageFile | DevicePathKind::Unknown => Ok(DeviceHandle::File(
++            FileBlockDevice::open_read_only(path, SectorSize::S512)?,
++        )),
+         DevicePathKind::LinuxBlockDevice => {
+             #[cfg(target_os = "linux")]
+             {
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\open.rs:26:
+-                Ok(DeviceHandle::Linux(LinuxBlockDevice::open_read_only(
+-                    path,
+-                )?))
++                Ok(DeviceHandle::Linux(LinuxBlockDevice::open_read_only(path)?))
+             }
+             #[cfg(not(target_os = "linux"))]
+             {
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\open.rs:44:
+     let path = path.as_ref();
+     let path_str = path.to_string_lossy();
+     match classify_path(&path_str) {
+-        DevicePathKind::ImageFile | DevicePathKind::Unknown => {
+-            Ok(DeviceHandle::File(FileBlockDevice::open_read_write(
+-                path,
+-                SectorSize::S512,
+-            )?))
+-        }
++        DevicePathKind::ImageFile | DevicePathKind::Unknown => Ok(DeviceHandle::File(
++            FileBlockDevice::open_read_write(path, SectorSize::S512)?,
++        )),
+         DevicePathKind::LinuxBlockDevice => {
+             #[cfg(target_os = "linux")]
+             {
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\open.rs:70:
+         )),
+     }
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\path_kind.rs:67:
+     }
+     false
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\src\scan.rs:11:
+ pub fn list_block_devices() -> DiskResult<Vec<DiskInfo>> {
+     Ok(Vec::new())
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\tests\path_kind_tests.rs:4:
+ 
+ #[test]
+ fn classify_image_file() {
+-    assert_eq!(
+-        classify_path("test-empty.img"),
+-        DevicePathKind::ImageFile
+-    );
++    assert_eq!(classify_path("test-empty.img"), DevicePathKind::ImageFile);
+ }
+ 
+ #[test]
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\tests\path_kind_tests.rs:16:
+         classify_path("/dev/nvme0n1"),
+         DevicePathKind::LinuxBlockDevice
+     );
+-    assert_eq!(
+-        classify_path("/dev/sda"),
+-        DevicePathKind::LinuxBlockDevice
+-    );
++    assert_eq!(classify_path("/dev/sda"), DevicePathKind::LinuxBlockDevice);
+ }
+ 
+ #[test]
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-disk\tests\path_kind_tests.rs:35:
+     assert_eq!(linux_block_name("/dev/nvme0n1").as_deref(), Some("nvme0n1"));
+     assert_eq!(linux_block_name("/dev/sr0").as_deref(), None);
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-gpt\src\lib.rs:10:
+ pub mod writer;
+ 
+ pub use error::{GptError, GptResult};
+-pub use header::GptHeader;
+ pub use guid::partition_type_guid;
++pub use header::GptHeader;
+ pub use parser::parse_gpt;
+ pub use validator::{validate_alignment, validate_gpt};
+ pub use writer::write_gpt_from_draft;
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-gpt\tests\gpt_negative_tests.rs:59:
+     let err = GptHeader::parse(&[0u8; 64]).unwrap_err();
+     assert!(matches!(err, GptError::NoGptHeader));
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-safety\src\confirmation.rs:43:
+     }
+ 
+     if classify_path(&plan.disk_path) == DevicePathKind::LinuxBlockDevice {
+-        validate_write_risk(
+-            &plan.disk_path,
+-            disk_info,
+-            opts.accept_system_disk_risk,
+-        )?;
++        validate_write_risk(&plan.disk_path, disk_info, opts.accept_system_disk_risk)?;
+     }
+ 
+     if opts.backup_path.is_none() {
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-safety\src\danger.rs:148:
+     }
+     name.to_string()
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-safety\tests\danger_tests.rs:50:
+     assert!(risk.write_allowed);
+     assert!(risk.is_removable);
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-safety\tests\safety_tests.rs:1:
+-use rspfdisk_core::{ChangePlan, DiffReport, DiskInfo, LayoutDraft, PartitionTableKind, SectorSize};
++use rspfdisk_core::{
++    ChangePlan, DiffReport, DiskInfo, LayoutDraft, PartitionTableKind, SectorSize,
++};
+ use rspfdisk_safety::{confirm_write, disk_confirmation_phrase, ConfirmationOptions};
+ 
+ fn sample_info(path: &str) -> DiskInfo {
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-safety\tests\safety_tests.rs:128:
+ fn disk_phrase_from_path() {
+     assert_eq!(disk_confirmation_phrase("/dev/nvme0n1"), "nvme0n1");
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-tui\src\main.rs:7:
+         std::process::exit(1);
+     }
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\src\gpt.rs:127:
+     }
+     out
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\src\lib.rs:9:
+ 
+ pub use gpt::parse_gpt_from_disk_sectors;
+ pub use types::{GptPartition, GptTable};
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\src\types.rs:29:
+     pub disk_guid: [u8; 16],
+     pub partitions: alloc::vec::Vec<GptPartition>,
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\src\main.rs:30:
+     eprintln!("BOOTX64.EFI: build with --target x86_64-unknown-uefi");
+     eprintln!("  cargo build -p rspfdisk-uefi --release --target x86_64-unknown-uefi");
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\src\uefi_entry.rs:63:
+ }
+ 
+ fn inspect_handle(handle: Handle) -> Result<rspfdisk_uefi::GptTable, &'static str> {
+-    let block = boot::open_protocol_exclusive::<BlockIO>(handle)
+-        .map_err(|_| "BlockIo open failed")?;
++    let block =
++        boot::open_protocol_exclusive::<BlockIO>(handle).map_err(|_| "BlockIo open failed")?;
+ 
+     let media = block.media();
+     if media.is_logical_partition() {
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\src\uefi_entry.rs:111:
+         let _ = stdin.read_key();
+     });
+ }
++
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\tests\gpt_nostd_tests.rs:24:
+     entry[0] = 0x28; // non-zero type GUID
+     entry[32..40].copy_from_slice(&2048u64.to_le_bytes());
+     entry[40..48].copy_from_slice(&4096u64.to_le_bytes());
+-    let name_utf16: Vec<u8> = "EFI"
+-        .encode_utf16()
+-        .flat_map(|c| c.to_le_bytes())
+-        .collect();
++    let name_utf16: Vec<u8> = "EFI".encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
+     entry[56..56 + name_utf16.len()].copy_from_slice(&name_utf16);
+ 
+     let entries_crc = rspfdisk_uefi::gpt::gpt_crc32(&entry);
+Diff in \\?\D:\rust-spfdisk-agents-pack\crates\rspfdisk-uefi\tests\gpt_nostd_tests.rs:57:
+     header[0] = b'X';
+     assert!(parse_gpt_from_disk_sectors(&header, &entries).is_err());
+ }
++
+[release] cargo clippy --workspace -- -D warnings
+[release] cargo test --workspace
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test init_script_launches_tui ... ok
+test qemu_ps1_supports_validate_only ... ok
+test grub_cfg_references_initramfs ... ok
+test boot_media_files_exist ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test layout_dry_run_windows ... ok
+test layout_write_and_inspect ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.39s
+
+
+running 1 test
+test uefi_poc_files_exist ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test read_multiple_sectors ... ok
+test sector_size_4096 ... ok
+test read_beyond_boundary_fails ... ok
+test read_single_sector ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 4 tests
+test classify_image_file ... ok
+test classify_linux_block_device ... ok
+test whole_disk_write_candidates ... ok
+test linux_block_name_parsing ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test header_parse_rejects_short_buffer ... ok
+test invalid_header_crc ... ok
+test invalid_gpt_signature ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.09s
+
+
+running 2 tests
+test empty_image_has_no_gpt ... ok
+test write_and_read_gpt ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.99s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+test macos_apfs_no_format ... ok
+test linux_home_template ... ok
+test windows_standard_template ... ok
+test small_disk_rejection ... ok
+test template_registry_loads_all ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test empty_mbr ... ok
+test protective_mbr_write_and_read ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test image_is_low_risk ... ok
+test removable_whole_disk_write_allowed ... ok
+test partition_write_blocked ... ok
+test fixed_disk_is_high_risk ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test disk_phrase_from_path ... ok
+test image_write_requires_confirmation_flag ... ok
+test real_disk_with_phrase_succeeds ... ok
+test image_write_with_flags_succeeds ... ok
+test no_write_flag_denied ... ok
+test wrong_phrase_denied ... ok
+test real_disk_requires_confirm_phrase ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test parse_minimal_gpt ... ok
+test reject_bad_signature ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[release] cargo test -p rspfdisk-uefi
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test reject_bad_signature ... ok
+test parse_minimal_gpt ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[release] writing checksums �� D:\rust-spfdisk-agents-pack\dist\SHA256SUMS
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  .gitkeep
+01e1019fcbcd39e43f081d5317a2285873c1fc96c7d8fcc60a25dddd17a8d22a  EFI/BOOT/BOOTX64.EFI
+[release] release gate passed

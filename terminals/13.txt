@@ -1,0 +1,18 @@
+---
+pid: 14012
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo test -p rspfdisk-cli --test integration_tests"
+started_at: 2026-07-06T04:10:26.379Z
+running_for_ms: 33075010 
+---
+   Compiling rspfdisk-cli v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.75s
+     Running tests\integration_tests.rs (target\debug\deps\integration_tests-d666eb5118175abc.exe)
+
+running 2 tests
+test layout_dry_run_windows ... ok
+test layout_write_and_inspect has been running for over 60 seconds
+test layout_write_and_inspect ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 150.17s
+

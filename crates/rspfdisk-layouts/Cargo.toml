@@ -1,0 +1,14 @@
+[package]
+name = "rspfdisk-layouts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rspfdisk-core = { path = "../rspfdisk-core" }
+serde = { workspace = true }
+toml = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

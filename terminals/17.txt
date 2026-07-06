@@ -1,0 +1,253 @@
+---
+pid: 8576
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo test --workspace"
+started_at: 2026-07-06T05:53:32.310Z
+running_for_ms: 26890006 
+---
+   Compiling rspfdisk-gpt v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-gpt)
+   Compiling rspfdisk-cli v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.06s
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_backup-78c1b4ad64a02111.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk-e6bb1e87f3252fa0.exe)
+     Running tests\boot_media_tests.rs (target\debug\deps\boot_media_tests-5bd05bd07e9eba41.exe)
+     Running tests\golden_layout_tests.rs (target\debug\deps\golden_layout_tests-a2a10d9e33219e0f.exe)
+     Running tests\integration_tests.rs (target\debug\deps\integration_tests-d666eb5118175abc.exe)
+     Running tests\uefi_poc_tests.rs (target\debug\deps\uefi_poc_tests-7ae719f90e31c728.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_core-30ffc6fc5900fea3.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_disk-a6a4daf2e85d2943.exe)
+     Running tests\disk_tests.rs (target\debug\deps\disk_tests-053dac1ec460a6ea.exe)
+     Running tests\path_kind_tests.rs (target\debug\deps\path_kind_tests-c709cec092e4491d.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_gpt-9bc17abbf720e84d.exe)
+     Running tests\gpt_negative_tests.rs (target\debug\deps\gpt_negative_tests-a215918bb82449f2.exe)
+     Running tests\gpt_tests.rs (target\debug\deps\gpt_tests-d91f2199dbb1f981.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_layouts-5a9cd5d330888392.exe)
+     Running tests\layout_tests.rs (target\debug\deps\layout_tests-38b1c680ca0e2692.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_mbr-33ee63718a0e3b73.exe)
+     Running tests\mbr_tests.rs (target\debug\deps\mbr_tests-b3d9b2b7a1ebf9c1.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_safety-4af54ed066ff42e0.exe)
+     Running tests\danger_tests.rs (target\debug\deps\danger_tests-76bbf467a49c5995.exe)
+     Running tests\safety_tests.rs (target\debug\deps\safety_tests-ca88d1c6068b53f5.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_tui-c00177535971d5b8.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk_tui-c354922b09bde86f.exe)
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_uefi-766bf72f4fa8216a.exe)
+     Running tests\gpt_nostd_tests.rs (target\debug\deps\gpt_nostd_tests-5536d80a7ad88906.exe)
+   Doc-tests rspfdisk_backup
+   Doc-tests rspfdisk_core
+   Doc-tests rspfdisk_disk
+   Doc-tests rspfdisk_gpt
+   Doc-tests rspfdisk_layouts
+
+   Doc-tests rspfdisk_mbr
+   Doc-tests rspfdisk_safety
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test boot_media_files_exist ... ok
+test init_script_launches_tui ... ok
+test qemu_ps1_supports_validate_only ... ok
+test grub_cfg_references_initramfs ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test golden_windows_standard_layout ... ignored, slow: 8GiB GPT write
+test golden_image_fixture_exists_or_documented ... ok
+test golden_windows_standard_dry_run ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 2 tests
+test layout_write_and_inspect ... ignored, slow: 8GiB GPT write
+test layout_dry_run_windows ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 1 test
+test uefi_poc_files_exist ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test sector_size_4096 ... ok
+test read_beyond_boundary_fails ... ok
+test read_multiple_sectors ... ok
+test read_single_sector ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 4 tests
+test whole_disk_write_candidates ... ok
+test classify_linux_block_device ... ok
+test linux_block_name_parsing ... ok
+test classify_image_file ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test header_parse_rejects_short_buffer ... ok
+test invalid_gpt_signature has been running for over 60 seconds
+test invalid_header_crc has been running for over 60 seconds
+test invalid_gpt_signature ... ok
+test invalid_header_crc ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 524.05s
+
+
+running 2 tests
+test write_and_read_gpt ... ignored, slow: 8GiB GPT write
+test empty_image_has_no_gpt ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+test macos_apfs_no_format ... ok
+test linux_home_template ... ok
+test small_disk_rejection ... ok
+test windows_standard_template ... ok
+test template_registry_loads_all ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test empty_mbr ... ok
+test protective_mbr_write_and_read ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test fixed_disk_is_high_risk ... ok
+test image_is_low_risk ... ok
+test partition_write_blocked ... ok
+test removable_whole_disk_write_allowed ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test disk_phrase_from_path ... ok
+test no_write_flag_denied ... ok
+test real_disk_requires_confirm_phrase ... ok
+test wrong_phrase_denied ... ok
+test image_write_with_flags_succeeds ... ok
+test image_write_requires_confirmation_flag ... ok
+test real_disk_with_phrase_succeeds ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test reject_bad_signature ... ok
+test parse_minimal_gpt ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rspfdisk_tui
+   Doc-tests rspfdisk_uefi

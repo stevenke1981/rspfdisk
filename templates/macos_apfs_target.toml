@@ -1,0 +1,18 @@
+name = "macos_apfs_target"
+display_name = "macOS APFS 目標碟"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "64GiB"
+
+[[partitions]]
+name = "EFI"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+
+[[partitions]]
+name = "macOS"
+size = "fill"
+type = "apple-apfs"
+filesystem = "none"
+note = "第一版不格式化 APFS，交給 macOS 安裝程式或 Disk Utility"

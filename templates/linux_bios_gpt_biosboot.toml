@@ -1,0 +1,31 @@
+name = "linux_bios_gpt_biosboot"
+display_name = "Linux BIOS + GPT + GRUB biosboot"
+table = "gpt"
+boot_mode = "bios"
+min_disk_size = "32GiB"
+
+[[partitions]]
+name = "BIOS Boot"
+size = "1MiB"
+type = "biosboot"
+filesystem = "none"
+
+[[partitions]]
+name = "Linux Root"
+size = "80GiB"
+type = "linux-filesystem"
+filesystem = "ext4"
+mount = "/"
+
+[[partitions]]
+name = "Linux Swap"
+size = "auto:swap"
+type = "linux-swap"
+filesystem = "swap"
+
+[[partitions]]
+name = "Linux Home"
+size = "fill"
+type = "linux-filesystem"
+filesystem = "ext4"
+mount = "/home"

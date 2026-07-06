@@ -1,0 +1,23 @@
+#!/bin/sh
+# Rust SPFDisk minimal init — launches TUI on boot.
+export PATH=/usr/bin:/bin:/sbin
+
+mount -t proc proc /proc 2>/dev/null
+mount -t sysfs sysfs /sys 2>/dev/null
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+
+if [ -d /dev ]; then
+    for tty in /dev/ttyS0 /dev/tty0 /dev/console; do
+        [ -c "$tty" ] && exec >/dev/"$(basename "$tty")" 2>&1
+    done
+fi
+
+echo "Rust SPFDisk boot environment"
+echo "Press Q in TUI to exit."
+
+if [ -x /usr/bin/rspfdisk-tui ]; then
+    exec /usr/bin/rspfdisk-tui
+fi
+
+echo "rspfdisk-tui not found; dropping to shell."
+exec /bin/sh

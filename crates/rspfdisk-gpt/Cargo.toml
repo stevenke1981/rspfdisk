@@ -1,0 +1,17 @@
+[package]
+name = "rspfdisk-gpt"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rspfdisk-core = { path = "../rspfdisk-core" }
+rspfdisk-disk = { path = "../rspfdisk-disk" }
+rspfdisk-mbr = { path = "../rspfdisk-mbr" }
+crc32fast = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+rspfdisk-layouts = { path = "../rspfdisk-layouts" }

@@ -1,0 +1,38 @@
+name = "windows_uefi_with_data"
+display_name = "Windows 11 / 10 + D 槽"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "128GiB"
+
+[[partitions]]
+name = "EFI System"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+flags = ["boot", "esp"]
+
+[[partitions]]
+name = "Microsoft Reserved"
+size = "16MiB"
+type = "msr"
+filesystem = "none"
+
+[[partitions]]
+name = "Windows"
+size = "180GiB"
+type = "microsoft-basic-data"
+filesystem = "none"
+note = "預設 C 槽，可讓使用者調整"
+
+[[partitions]]
+name = "Windows Recovery"
+size = "1GiB"
+type = "windows-recovery"
+filesystem = "none"
+
+[[partitions]]
+name = "Data"
+size = "fill"
+type = "microsoft-basic-data"
+filesystem = "none"
+note = "可格式化為 NTFS 或 exFAT"

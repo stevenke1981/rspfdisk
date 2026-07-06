@@ -1,0 +1,32 @@
+name = "linux_ext4_home"
+display_name = "Linux UEFI ext4 + 獨立 /home"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "64GiB"
+
+[[partitions]]
+name = "EFI System"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+mount = "/boot/efi"
+
+[[partitions]]
+name = "Linux Root"
+size = "80GiB"
+type = "linux-filesystem"
+filesystem = "ext4"
+mount = "/"
+
+[[partitions]]
+name = "Linux Swap"
+size = "auto:swap"
+type = "linux-swap"
+filesystem = "swap"
+
+[[partitions]]
+name = "Linux Home"
+size = "fill"
+type = "linux-filesystem"
+filesystem = "ext4"
+mount = "/home"

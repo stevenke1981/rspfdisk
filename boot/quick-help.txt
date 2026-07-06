@@ -1,0 +1,8 @@
+Rust SPFDisk — 快速說明
+
+[F] 快速分區精靈
+[1] Windows  [2] macOS  [3] Linux
+[Q] 離開
+
+預設唯讀。寫入需明確確認。
+image 測試: rspfdisk layout windows-standard /path/disk.img --dry-run

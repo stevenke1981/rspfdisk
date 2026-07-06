@@ -1,0 +1,53 @@
+name: Linux Acceptance
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 ovmf
+
+      - name: Slow image-write tests
+        run: cargo test --workspace -- --include-ignored
+
+      - name: Linux acceptance (release + image + uefi smoke)
+        run: |
+          chmod +x tools/*.sh tools/lib/*.sh
+          bash tools/verify-linux.sh --with-qemu
+
+      - name: Upload QEMU serial log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-uefi-serial-log
+          path: dist/qemu-uefi-serial.log
+          if-no-files-found: ignore
+
+  boot-iso:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install ISO build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y grub-pc-bin xorriso cpio gzip
+
+      - name: Try boot ISO build
+        run: |
+          chmod +x tools/*.sh tools/lib/*.sh
+          bash tools/verify-linux.sh --with-iso || echo "ISO build skipped or failed"

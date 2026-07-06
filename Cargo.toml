@@ -1,0 +1,45 @@
+[workspace]
+members = [
+  "crates/rspfdisk-core",
+  "crates/rspfdisk-disk",
+  "crates/rspfdisk-mbr",
+  "crates/rspfdisk-gpt",
+  "crates/rspfdisk-layouts",
+  "crates/rspfdisk-backup",
+  "crates/rspfdisk-safety",
+  "crates/rspfdisk-cli",
+  "crates/rspfdisk-tui",
+  "crates/rspfdisk-uefi",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+repository = "https://example.invalid/rust-spfdisk"
+
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+clap = { version = "4", features = ["derive"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+crc32fast = "1"
+sha2 = "0.10"
+ratatui = "0.29"
+crossterm = "0.28"
+hex = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
+tempfile = "3"
+log = { version = "0.4", default-features = false }
+uefi = { version = "0.33", features = ["alloc", "panic_handler", "logger"] }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = true

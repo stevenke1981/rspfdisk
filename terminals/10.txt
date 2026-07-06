@@ -1,0 +1,55 @@
+---
+pid: 13824
+cwd: "D:\rust-spfdisk-agents-pack"
+command: "cargo test --workspace"
+started_at: 2026-07-06T03:48:34.205Z
+running_for_ms: 34390017 
+---
+   Compiling rspfdisk-gpt v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-gpt)
+   Compiling rspfdisk-layouts v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-layouts)
+   Compiling rspfdisk-backup v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-backup)
+   Compiling rspfdisk-cli v0.1.0 (D:\rust-spfdisk-agents-pack\crates\rspfdisk-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.59s
+     Running unittests src\lib.rs (target\debug\deps\rspfdisk_backup-78c1b4ad64a02111.exe)
+     Running unittests src\main.rs (target\debug\deps\rspfdisk-e6bb1e87f3252fa0.exe)
+     Running tests\boot_media_tests.rs (target\debug\deps\boot_media_tests-5bd05bd07e9eba41.exe)
+     Running tests\golden_layout_tests.rs (target\debug\deps\golden_layout_tests-a2a10d9e33219e0f.exe)
+
+errorrunning 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test init_script_launches_tui ... ok
+test boot_media_files_exist ... ok
+test grub_cfg_references_initramfs ... ok
+test qemu_ps1_supports_validate_only ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test golden_windows_standard_four_partitions ... FAILED
+test golden_no_overlap_between_partitions ... ok
+
+failures:
+
+---- golden_windows_standard_four_partitions stdout ----
+
+thread 'golden_windows_standard_four_partitions' (11540) panicked at crates\rspfdisk-cli\tests\golden_layout_tests.rs:21:10:
+called `Result::unwrap()` on an `Err` value: Os { code: 112, kind: StorageFull, message: "磁�??空?�?足�? }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    golden_windows_standard_four_partitions
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.86s
+
+: test failed, to rerun pass `-p rspfdisk-cli --test golden_layout_tests`

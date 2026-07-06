@@ -1,0 +1,13 @@
+Rust SPFDisk — Layout Preview
+
+Template: macOS APFS 目標碟
+Disk: /dev/sdb 256 GiB GPT
+Mode: dry-run
+
+Changes:
++ Create GPT
++ Partition 1: EFI       512 MiB  FAT32  ESP
++ Partition 2: macOS     255 GiB  none   Apple APFS
+
+Note: APFS will not be formatted by rspfdisk v0.1.
+No write performed.
