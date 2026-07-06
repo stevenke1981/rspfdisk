@@ -36,6 +36,7 @@ chrono = { version = "0.4", features = ["serde"] }
 tempfile = "3"
 log = { version = "0.4", default-features = false }
 uefi = { version = "0.33", features = ["alloc", "panic_handler", "logger"] }
+proptest = "1"
 
 [profile.dev]
 panic = "abort"

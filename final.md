@@ -243,3 +243,46 @@ sudo rspfdisk layout windows-standard /dev/sdb --write \
 - [x] `git init`
 - [x] `git add -A`
 - [x] `git commit -m "feat: v0.1.0 release — Rust SPFDisk MVP"`
+
+---
+
+## 2026-07-06 — 第二波實作：TUI 進階、Property Tests、Boot Media 強化
+
+**任務：** 補齊 TUI 進階螢幕、proptest、強化開機媒體驗證。
+
+**TUI 進階螢幕（6 螢幕）：**
+- Screen::Main → 主選單（顯示目標磁碟、功能快捷鍵）
+- Screen::DiskList → 磁碟列表（支援掃描區塊裝置 + 輸入 image 路徑）
+- Screen::PartTable → 分割表（顯示 MBR/GPT 分區、風險等級、警告）
+- Screen::QuickLayout → 快速分區（↑↓選模板、Enter 產生草稿）
+- Screen::Preview → 草稿預覽（顯示分區摘要、[W] 進入寫入確認）
+- Screen::WriteConfirm → 寫入確認（顯示確認文字、輸入驗證）
+
+**Property Tests（proptest）：**
+- `rspfdisk-gpt`: 4 proptests — 隨機 512B buffer fuzz、CRC fuzz、short buffer rejection、多尺寸 image fuzz
+- `rspfdisk-mbr`: 3 proptests — 隨機 512B buffer fuzz、large buffer fuzz、short buffer rejection
+- `rspfdisk-layouts`: 4 proptests — 隨機字串 fuzz、fill expression fuzz、正整數 size 解析
+
+**Boot Media 測試強化：**
+- boot_media_tests 從 4 個 → 9 個測試
+- 新增：UEFI smoke 腳本驗證、UEFI app 腳本驗證、boot ISO bundle 結構驗證、release scripts 驗證、SHA256SUMS 驗證、init 腳本內容強化
+
+**測試結果：**
+```text
+cargo test --workspace        → 54 tests passed (+16 新測試)
+cargo test --workspace -- --ignored → 5 slow tests passed
+cargo fmt --check             → clean
+cargo clippy -D warnings      → clean
+```
+
+**spec.md 狀態更新：**
+- 6 TUI → ✅ 已升級為 6 螢幕完整 TUI（磁碟列表、分割表、寫入確認）
+
+**plan.md 狀態更新：**
+- Phase 6 (TUI) → ✅ 完成進階螢幕（磁碟列表、分割表、寫入確認）
+- Property Tests → ✅ test.md 中 Property Tests 層級已覆蓋
+
+**下一步（非 blocking）：**
+- QEMU BIOS/UEFI 實機開機測試（需 Linux 環境 + grub-mkrescore）
+- Boot ISO 完整建置
+- TUI 自動化集成測試

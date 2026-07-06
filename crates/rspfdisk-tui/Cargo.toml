@@ -10,6 +10,11 @@ path = "src/main.rs"
 
 [dependencies]
 rspfdisk-core = { path = "../rspfdisk-core" }
+rspfdisk-disk = { path = "../rspfdisk-disk" }
+rspfdisk-gpt = { path = "../rspfdisk-gpt" }
+rspfdisk-mbr = { path = "../rspfdisk-mbr" }
+rspfdisk-safety = { path = "../rspfdisk-safety" }
+rspfdisk-layouts = { path = "../rspfdisk-layouts" }
 anyhow = { workspace = true }
 ratatui = { workspace = true }
 crossterm = { workspace = true }
