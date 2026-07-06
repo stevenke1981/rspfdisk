@@ -35,7 +35,6 @@ fn golden_windows_standard_dry_run() {
 
 /// Slow: full 8GiB GPT write + inspect (~2–3 min on Windows). Run with `--include-ignored`.
 #[test]
-#[ignore = "slow: 8GiB GPT write"]
 fn golden_windows_standard_layout() {
     let path = ensure_sparse_image("golden-windows-standard.img");
     let path_str = path.to_str().unwrap();

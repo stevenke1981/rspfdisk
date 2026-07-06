@@ -10,7 +10,6 @@ fn workspace_image(name: &str) -> std::path::PathBuf {
 }
 
 #[test]
-#[ignore = "slow: 8GiB GPT write"]
 fn write_and_read_gpt() {
     let path = workspace_image("gpt-roundtrip.img");
     if let Some(parent) = path.parent() {

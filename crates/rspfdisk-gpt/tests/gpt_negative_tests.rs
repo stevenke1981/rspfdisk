@@ -29,7 +29,6 @@ fn write_valid_gpt(path: &std::path::Path) {
 }
 
 #[test]
-#[ignore = "slow: 8GiB GPT seed"]
 fn invalid_gpt_signature() {
     let path = workspace_image("gpt-negative-signature.img");
     if let Some(parent) = path.parent() {
@@ -49,7 +48,6 @@ fn invalid_gpt_signature() {
 }
 
 #[test]
-#[ignore = "slow: 8GiB GPT seed"]
 fn invalid_header_crc() {
     let path = workspace_image("gpt-negative-crc.img");
     if let Some(parent) = path.parent() {
