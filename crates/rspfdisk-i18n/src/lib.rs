@@ -1,6 +1,26 @@
-//! Simple i18n for rust-spfdisk.
+//! Simple i18n (internationalization) for rspfdisk.
 //!
 //! Loads JSON locale files at compile time via `include_str!()`.
+//! No runtime file loading — zero deployment overhead.
+//!
+//! ## Usage
+//! ```
+//! use rspfdisk_i18n::{t, tr, set_locale};
+//!
+//! // Environment: RSPFDISK_LANG=zh-TW (default) or RSPFDISK_LANG=en
+//! let greeting = t!("hello");
+//!
+//! // With arguments
+//! let msg = t!("disk_size", disk_name);
+//!
+//! // Switch at runtime
+//! set_locale("en");
+//! ```
+//!
+//! ## Locale files
+//! - `locales/zh-TW.json` — Traditional Chinese (default)
+//! - `locales/en.json` — English
+//!
 //! Supports zh-TW (default) and en locales at runtime.
 //!
 //! Usage:

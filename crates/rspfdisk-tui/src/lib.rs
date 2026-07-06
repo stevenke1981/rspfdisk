@@ -1,14 +1,32 @@
-//! Chinese TUI for rust-spfdisk.
+//! TUI (Terminal User Interface) for rspfdisk.
 //!
-//! Screens:
-//!   Main          → 主選單，選擇目標磁碟或 image
-//!   DiskList      → 列出可用區塊裝置與 image
-//!   PartTable     → 顯示分割表
-//!   QuickLayout   → 選擇快速分區模板
-//!   Preview       → 預覽分區草稿
-//!   SizeEditor    → 互動編輯分區容量
-//!   BackupConfirm → 備份確認與建立
-//!   WriteConfirm  → 輸入確認文字後寫入
+//! Built with ratatui + crossterm. Supports Chinese (default) and English.
+//!
+//! ## Screens (8 total)
+//!
+//! | Screen         | Purpose                               |
+//! |----------------|---------------------------------------|
+//! | Main           | Menu — select disk or image           |
+//! | DiskList       | List block devices + enter image path |
+//! | PartTable      | Display MBR/GPT partitions            |
+//! | QuickLayout    | Select partition template             |
+//! | Preview        | Preview partition draft diff          |
+//! | SizeEditor     | Interactively edit partition sizes    |
+//! | BackupConfirm  | Create backup before write            |
+//! | WriteConfirm   | Type confirmation phrase to write     |
+//!
+//! ## Flow
+//!
+//! ```text
+//! Main → DiskList → PartTable → QuickLayout → Preview
+//!                                                 ↓
+//!                                           SizeEditor
+//!                                           BackupConfirm
+//!                                           WriteConfirm
+//! ```
+//!
+//! ## i18n
+//! Language is selected via `RSPFDISK_LANG` env var (zh-TW default, en for English).
 
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};

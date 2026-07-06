@@ -1,4 +1,9 @@
-//! no_std GPT parser for UEFI PoC (also unit-tested on host).
+//! no_std GPT parser for UEFI PoC.
+//!
+//! Designed for `x86_64-unknown-uefi` target. Reads GPT from
+//! UEFI Block IO protocol. Also unit-testable on host (`cargo test`).
+//!
+//! Limitations: read-only, no TUI, no write support yet.
 
 #![cfg_attr(not(test), no_std)]
 

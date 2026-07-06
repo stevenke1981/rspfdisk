@@ -1,3 +1,15 @@
+//! rspfdisk CLI — 磁碟分割工具
+//!
+//! Subcommands:
+//!   list      List block devices
+//!   inspect   Inspect partition table (MBR/GPT)
+//!   backup    Backup partition table to `.rspbak`
+//!   restore   Restore partition table (dry-run only)
+//!   layout    Quick partition layout wizard
+//!   tui       Launch terminal UI
+//!
+//! Safety: reads are default; writes require `--write` + confirmation.
+
 mod commands;
 
 use anyhow::Result;

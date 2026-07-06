@@ -1,4 +1,14 @@
-//! Core data structures for rust-spfdisk.
+//! Core data structures for rspfdisk.
+//!
+//! Shared types used across all crates:
+//! - [`SectorSize`], [`DiskInfo`] — physical disk representation
+//! - [`PartitionTable`], [`PartitionEntry`] — parsed partition tables
+//! - [`LayoutDraft`], [`PartitionDraft`] — template-generated layouts
+//! - [`PartitionType`] — abstract partition type slugs
+//! - [`ChangePlan`] — transactional write plan
+//! - [`CoreError`], [`CoreResult`] — unified error types
+//! - [`BootMode`], [`PartitionTableKind`] — enumeration types
+//! - [`ALIGN_1MIB`] — standard 1 MiB alignment constant
 
 pub mod error;
 pub mod layout;

@@ -1,4 +1,7 @@
-//! Backup and restore (.rspbak format).
+//! Backup and restore in `.rspbak` format.
+//!
+//! Creates disk backups with SHA256 verification, partition manifest,
+//! and metadata. Supports dry-run restore with identity checking.
 
 pub mod error;
 pub mod format;

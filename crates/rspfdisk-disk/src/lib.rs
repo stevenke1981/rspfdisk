@@ -1,4 +1,13 @@
-//! Block device abstractions for rust-spfdisk.
+//! Block device abstractions for rspfdisk.
+//!
+//! Provides:
+//! - [`BlockDevice`] trait — unified read/write interface
+//! - [`FileBlockDevice`] — file-backed implementation (test images)
+//! - `LinuxBlockDevice` — real `/dev` device access (Linux only)
+//! - [`ReadOnlyDevice`] — wrapper that prevents writes
+//! - [`list_block_devices()`] — enumerate system block devices
+//! - [`classify_path()`] — detect image file vs block device
+//! - [`create_test_image()`] — create sparse test images
 
 pub mod device;
 pub mod device_handle;
