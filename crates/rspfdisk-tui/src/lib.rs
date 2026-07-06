@@ -93,8 +93,15 @@ impl AppState {
                 vec![
                     "windows_uefi_standard".into(),
                     "windows_uefi_with_data".into(),
+                    "windows_uefi_dual_boot".into(),
                     "macos_apfs_target".into(),
+                    "macos_apfs_shared_exfat".into(),
+                    "macos_apfs_reserve_windows".into(),
+                    "linux_ext4_standard".into(),
                     "linux_ext4_home".into(),
+                    "linux_btrfs_standard".into(),
+                    "linux_bios_gpt_biosboot".into(),
+                    "windows_legacy_mbr".into(),
                 ]
             } else {
                 names

@@ -1,0 +1,26 @@
+name = "linux_btrfs_standard"
+display_name = "Linux UEFI btrfs 單系統"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "32GiB"
+
+[[partitions]]
+name = "EFI System"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+mount = "/boot/efi"
+
+[[partitions]]
+name = "Linux Root"
+size = "fill-minus:auto:swap"
+type = "linux-filesystem"
+filesystem = "btrfs"
+mount = "/"
+note = "btrfs filesystem — 支援 snapshot、compression、subvolume"
+
+[[partitions]]
+name = "Linux Swap"
+size = "auto:swap"
+type = "linux-swap"
+filesystem = "swap"

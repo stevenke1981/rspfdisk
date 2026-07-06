@@ -245,10 +245,16 @@ fn resolve_template(name: &str) -> Result<rspfdisk_layouts::template::LayoutTemp
     let aliases = [
         ("windows-standard", "windows_uefi_standard"),
         ("windows_uefi_standard", "windows_uefi_standard"),
+        ("windows-dual-boot", "windows_uefi_dual_boot"),
+        ("windows_uefi_dual_boot", "windows_uefi_dual_boot"),
         ("linux-ext4-home", "linux_ext4_home"),
         ("linux_ext4_home", "linux_ext4_home"),
+        ("linux-btrfs", "linux_btrfs_standard"),
+        ("linux_btrfs_standard", "linux_btrfs_standard"),
         ("macos-apfs", "macos_apfs_target"),
         ("macos_apfs_target", "macos_apfs_target"),
+        ("macos-apfs-reserve", "macos_apfs_reserve_windows"),
+        ("macos_apfs_reserve_windows", "macos_apfs_reserve_windows"),
     ];
     let resolved = aliases
         .iter()

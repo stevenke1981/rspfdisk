@@ -1,0 +1,25 @@
+name = "macos_apfs_reserve_windows"
+display_name = "macOS + Windows 預留空間"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "128GiB"
+
+[[partitions]]
+name = "EFI"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+
+[[partitions]]
+name = "macOS"
+size = "fill-minus:100GiB"
+type = "apple-apfs"
+filesystem = "none"
+note = "使用者可調整容量，預留約 100 GiB 給 Windows"
+
+[[partitions]]
+name = "Windows Area"
+size = "fill"
+type = "microsoft-basic-data"
+filesystem = "none"
+note = "預留空間，可由 Windows Setup 格式化為 NTFS"

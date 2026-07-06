@@ -1,0 +1,25 @@
+name = "windows_uefi_dual_boot"
+display_name = "Windows 雙系統（沿用既有 ESP）"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "64GiB"
+
+[[partitions]]
+name = "Microsoft Reserved"
+size = "16MiB"
+type = "msr"
+filesystem = "none"
+
+[[partitions]]
+name = "Windows"
+size = "fill-minus:1GiB"
+type = "microsoft-basic-data"
+filesystem = "none"
+note = "可由 Windows Setup 格式化為 NTFS"
+
+[[partitions]]
+name = "Windows Recovery"
+size = "1GiB"
+type = "windows-recovery"
+filesystem = "none"
+note = "沿用既有的 EFI System Partition，不重複建立"

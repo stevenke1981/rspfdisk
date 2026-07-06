@@ -13,11 +13,16 @@ pub fn parse_size_expr(s: &str) -> CoreResult<SizeExpr> {
     if s == "fill" {
         return Ok(SizeExpr::Fill);
     }
-    if let Some(rest) = s.strip_prefix("fill-minus:") {
-        return Ok(SizeExpr::FillMinus(parse_byte_size(rest)?));
-    }
     if s == "auto:swap" {
         return Ok(SizeExpr::AutoSwap);
+    }
+    if let Some(rest) = s.strip_prefix("fill-minus:") {
+        let bytes = if rest == "auto:swap" {
+            auto_swap_size_bytes()
+        } else {
+            parse_byte_size(rest)?
+        };
+        return Ok(SizeExpr::FillMinus(bytes));
     }
     Ok(SizeExpr::Fixed(parse_byte_size(s)?))
 }
