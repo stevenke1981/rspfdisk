@@ -7,6 +7,7 @@ use crate::error::{DiskError, DiskResult};
 use crate::path_kind::linux_block_name;
 
 pub struct BlockSysfsInfo {
+    #[allow(dead_code)]
     pub block_name: String,
     pub size_bytes: u64,
     pub logical_sector_size: SectorSize,

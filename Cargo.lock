@@ -855,6 +855,7 @@ dependencies = [
  "rspfdisk-core",
  "rspfdisk-disk",
  "rspfdisk-gpt",
+ "rspfdisk-i18n",
  "rspfdisk-layouts",
  "rspfdisk-mbr",
  "rspfdisk-safety",
@@ -900,6 +901,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rspfdisk-i18n"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "serde_json",
+]
+
+[[package]]
 name = "rspfdisk-layouts"
 version = "0.1.0"
 dependencies = [
@@ -940,11 +949,14 @@ name = "rspfdisk-tui"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "crossterm",
  "ratatui",
+ "rspfdisk-backup",
  "rspfdisk-core",
  "rspfdisk-disk",
  "rspfdisk-gpt",
+ "rspfdisk-i18n",
  "rspfdisk-layouts",
  "rspfdisk-mbr",
  "rspfdisk-safety",

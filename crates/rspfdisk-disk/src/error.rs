@@ -1,3 +1,4 @@
+use rspfdisk_core::error::CoreError;
 use thiserror::Error;
 
 pub type DiskResult<T> = Result<T, DiskError>;
@@ -26,4 +27,6 @@ pub enum DiskError {
     InsufficientPrivileges(String),
     #[error("invalid block device path: {0}")]
     InvalidBlockPath(String),
+    #[error("core error: {0}")]
+    Core(#[from] CoreError),
 }

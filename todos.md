@@ -85,11 +85,11 @@
 - [x] macOS 模板選單。
 - [x] Linux 模板選單。
 - [x] Diff 預覽（Screen::Preview 基本版）。
-- [ ] 磁碟列表（需整合 rspfdisk-disk list）。
-- [ ] 分割區表格（需解析 MBR/GPT 後顯示）。
-- [ ] 容量編輯器。
-- [ ] 備份確認。
-- [ ] 寫入確認畫面。
+- [x] 磁碟列表（整合 rspfdisk-disk list，DiskList 螢幕）。
+- [x] 分割區表格（解析 MBR/GPT 後顯示，PartTable 螢幕）。
+- [x] 容量編輯器（Screen::SizeEditor，互動式編輯分區大小，含即時重算）。
+- [x] 備份確認（Screen::BackupConfirm，建立與確認備份後才可寫入）。
+- [x] 寫入確認畫面（WriteConfirm 螢幕，含確認詞輸入驗證）。
 
 ## Boot Media
 
@@ -113,10 +113,10 @@
 ## Documentation
 
 - [x] README 更新。
-- [ ] spec.md 持續更新（保持與實作同步）。
-- [ ] quick-layouts.md 完成。
-- [ ] windows-layout.md 完成。
-- [ ] macos-layout.md 完成。
-- [ ] linux-layout.md 完成。
-- [x] safety.md 完成（實作已完成，文件需確認存在）。
+- [x] spec.md 持續更新（v0.1 完整度已達標，含 CLI/TUI/安全需求全部記載）。
+- [x] quick-layouts.md 完成（含 TOML DSL、size 表達式、對齊規則、雙系統策略）。
+- [x] windows-layout.md 完成（含 UEFI 標準、D 槽、雙系統、Legacy BIOS 四模板）。
+- [x] macos-layout.md 完成（含 APFS 目標碟、exFAT 共用、Windows 預留）。
+- [x] linux-layout.md 完成（含 ext4 單系統、+home、swapfile、BIOS boot、btrfs 第二階段規劃）。
+- [x] safety.md 完成。
 - [x] final.md 持續更新。

@@ -10,6 +10,7 @@ members = [
   "crates/rspfdisk-cli",
   "crates/rspfdisk-tui",
   "crates/rspfdisk-uefi",
+  "crates/rspfdisk-i18n",
 ]
 resolver = "2"
 
@@ -37,6 +38,7 @@ tempfile = "3"
 log = { version = "0.4", default-features = false }
 uefi = { version = "0.33", features = ["alloc", "panic_handler", "logger"] }
 proptest = "1"
+once_cell = "1"
 
 [profile.dev]
 panic = "abort"

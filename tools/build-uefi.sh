@@ -15,6 +15,11 @@ echo "[uefi] building BOOTX64.EFI"
 )
 
 mkdir -p "${OUT}"
-cp "${ROOT}/target/${TARGET}/release/BOOTX64.EFI" "${OUT}/BOOTX64.EFI"
+# Handle both lowercase and uppercase .efi extensions
+UEFI_SRC="${ROOT}/target/${TARGET}/release/BOOTX64.EFI"
+if [ ! -f "${UEFI_SRC}" ]; then
+    UEFI_SRC="${ROOT}/target/${TARGET}/release/BOOTX64.efi"
+fi
+cp "${UEFI_SRC}" "${OUT}/BOOTX64.EFI"
 echo "[uefi] output: ${OUT}/BOOTX64.EFI"
 ls -lh "${OUT}/BOOTX64.EFI"

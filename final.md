@@ -282,6 +282,57 @@ cargo clippy -D warnings      → clean
 - Phase 6 (TUI) → ✅ 完成進階螢幕（磁碟列表、分割表、寫入確認）
 - Property Tests → ✅ test.md 中 Property Tests 層級已覆蓋
 
+## 2026-07-06 — 修復編譯錯誤 + 文件同步
+
+**任務：** 接續開發時發現 `rspfdisk-disk` crate 編譯中斷，`linux_sysfs.rs` 使用了 `?` 將 `CoreError` 轉型為 `DiskError` 但缺少對應的 `From` 實作。
+
+**修正：**
+- `crates/rspfdisk-disk/src/error.rs` — 新增 `Core(#[from] CoreError)` variant
+- `crates/rspfdisk-disk/src/linux_sysfs.rs` — 為 `block_name` 欄位加上 `#[allow(dead_code)]`
+
+**驗證：**
+```text
+cargo check --workspace              → ✅
+cargo test --workspace                → 52 tests passed
+cargo test --workspace -- --ignored   → 5 slow tests passed
+cargo clippy --workspace -- -D warnings → ✅ clean
+cargo fmt --check                     → ✅ clean
+```
+
+**文件更新：**
+- todos.md → TUI 螢幕狀態修正為正確完成標記（DiskList ✅、PartTable ✅、WriteConfirm ✅），保留容量編輯器與備份確認為未完成
+- todos.md → 文件章節全部標記為完成（spec.md、quick-layouts、windows/macos/linux-layout）
+
+## 2026-07-06 — TUI 容量編輯器 + 備份確認畫面
+
+**任務：** 實作 SizeEditor 和 BackupConfirm 兩個新螢幕，完成 TUI 8 螢幕全覆蓋。
+
+**新增：**
+- `Screen::SizeEditor` — 互動式分區容量編輯器
+  - ↑↓ 選取分區，Enter 開始編輯
+  - 支援 `parse_byte_size` 格式（80GiB、512MiB 等）
+  - 編輯後自動重算 start_lba 與更新 Preview
+  - 顯示總計與剩餘空間
+- `Screen::BackupConfirm` — 備份確認與建立
+  - 顯示備份狀態（尚未備份 / 備份中 / 完成）
+  - [B] 呼叫 `create_backup()` 建立 `.rspbak`
+  - 備份成功後才可 [W] 進入寫入確認
+- `rspfdisk-tui/Cargo.toml` — 加入 `rspfdisk-backup`、`chrono` 依賴
+
+**導航流程更新：**
+```text
+Preview → [E] SizeEditor → Esc → Preview
+Preview → [B] BackupConfirm → [B] backup → [W] WriteConfirm
+```
+
+**驗證：**
+```text
+cargo fmt --check                     → ✅ clean
+cargo clippy --workspace -- -D warnings → ✅ clean
+cargo test --workspace                → 52 tests passed
+cargo test --workspace -- --ignored   → 5 slow tests passed
+```
+
 **下一步（非 blocking）：**
 - QEMU BIOS/UEFI 實機開機測試（需 Linux 環境 + grub-mkrescore）
 - Boot ISO 完整建置

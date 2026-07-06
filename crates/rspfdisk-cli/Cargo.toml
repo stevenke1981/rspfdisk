@@ -17,6 +17,7 @@ rspfdisk-layouts = { path = "../rspfdisk-layouts" }
 rspfdisk-backup = { path = "../rspfdisk-backup" }
 rspfdisk-safety = { path = "../rspfdisk-safety" }
 rspfdisk-tui = { path = "../rspfdisk-tui" }
+rspfdisk-i18n = { path = "../rspfdisk-i18n" }
 clap = { workspace = true }
 anyhow = { workspace = true }
 serde_json = { workspace = true }

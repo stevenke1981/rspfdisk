@@ -15,6 +15,9 @@ rspfdisk-gpt = { path = "../rspfdisk-gpt" }
 rspfdisk-mbr = { path = "../rspfdisk-mbr" }
 rspfdisk-safety = { path = "../rspfdisk-safety" }
 rspfdisk-layouts = { path = "../rspfdisk-layouts" }
+rspfdisk-backup = { path = "../rspfdisk-backup" }
+rspfdisk-i18n = { path = "../rspfdisk-i18n" }
 anyhow = { workspace = true }
 ratatui = { workspace = true }
 crossterm = { workspace = true }
+chrono = { workspace = true }
