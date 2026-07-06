@@ -32,6 +32,12 @@ impl GptHeader {
         let header_size = u32::from_le_bytes(data[12..16].try_into().unwrap());
         let stored_crc = u32::from_le_bytes(data[16..20].try_into().unwrap());
 
+        // Validate header_size before using it as a slice bound.
+        // Minimum valid GPT header is 92 bytes; maximum fits in a sector.
+        if header_size < 92 || header_size > data.len() as u32 {
+            return Err(GptError::NoGptHeader);
+        }
+
         let mut crc_buf = data[..header_size as usize].to_vec();
         crc_buf[16..20].copy_from_slice(&0u32.to_le_bytes());
         let computed_crc = gpt_crc32(&crc_buf);
@@ -39,6 +45,8 @@ impl GptHeader {
             return Err(GptError::InvalidHeaderCrc);
         }
 
+        // Safety: all slice ranges are within [0..92) which is ≤ the validated
+        // header_size (≥ 92) and data is a full 512-byte sector.
         Ok(Self {
             revision: u32::from_le_bytes(data[8..12].try_into().unwrap()),
             header_size,
