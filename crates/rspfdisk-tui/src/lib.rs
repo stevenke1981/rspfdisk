@@ -1081,3 +1081,422 @@ fn generate_draft(state: &AppState, template_name: &str) -> Result<LayoutDraft> 
     let draft = generate_layout(&template, &info, None).map_err(|e| anyhow::anyhow!("{e}"))?;
     Ok(draft)
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rspfdisk_core::{BootMode, PartitionDraft, PartitionTableKind, PartitionType};
+
+    /// Helper: create an AppState with a known template list and draft.
+    fn test_state() -> AppState {
+        AppState {
+            screen: Screen::Main,
+            disks: vec![],
+            selected_disk: Some("/dev/test".into()),
+            selected_disk_info: None,
+            partitions_text: String::new(),
+            templates: vec![
+                "windows_uefi_standard".into(),
+                "windows_uefi_dual_boot".into(),
+                "linux_ext4_standard".into(),
+            ],
+            selected_template: String::new(),
+            template_index: 0,
+            draft: None,
+            preview_text: String::new(),
+            confirm_input: String::new(),
+            confirm_phrase: String::new(),
+            confirm_error: None,
+            message: String::new(),
+            image_path_input: String::new(),
+            editing_image_path: false,
+            log_lines: Vec::new(),
+            editor_selected: 0,
+            editor_input: String::new(),
+            editor_error: None,
+            backup_status: String::new(),
+            backup_path: None,
+        }
+    }
+
+    /// Helper: create a simple LayoutDraft for SizeEditor tests.
+    fn test_draft() -> LayoutDraft {
+        LayoutDraft {
+            template_name: "test".into(),
+            display_name: "Test".into(),
+            table: PartitionTableKind::Gpt,
+            boot_mode: BootMode::Uefi,
+            partitions: vec![
+                PartitionDraft {
+                    name: "EFI System".into(),
+                    start_lba: 2048,
+                    size_bytes: 512 * 1024 * 1024,
+                    partition_type: PartitionType::Esp,
+                    filesystem: Some("fat32".into()),
+                    mount_point: None,
+                    note: None,
+                    flags: vec![],
+                },
+                PartitionDraft {
+                    name: "Linux Root".into(),
+                    start_lba: 2064,
+                    size_bytes: 80 * 1024 * 1024 * 1024,
+                    partition_type: PartitionType::LinuxFilesystem,
+                    filesystem: Some("ext4".into()),
+                    mount_point: Some("/".into()),
+                    note: None,
+                    flags: vec![],
+                },
+                PartitionDraft {
+                    name: "Linux Swap".into(),
+                    start_lba: 2064 + (80 * 1024 * 1024 * 1024 / 512),
+                    size_bytes: 8 * 1024 * 1024 * 1024,
+                    partition_type: PartitionType::LinuxSwap,
+                    filesystem: Some("swap".into()),
+                    mount_point: None,
+                    note: None,
+                    flags: vec![],
+                },
+            ],
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Screen navigation
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn main_screen_f_key_goes_to_quick_layout() {
+        let mut state = test_state();
+        handle_main(&mut state, KeyCode::Char('f'));
+        assert_eq!(state.screen, Screen::QuickLayout);
+        assert_eq!(state.template_index, 0);
+    }
+
+    #[test]
+    fn main_screen_upper_f_goes_to_quick_layout() {
+        let mut state = test_state();
+        handle_main(&mut state, KeyCode::Char('F'));
+        assert_eq!(state.screen, Screen::QuickLayout);
+    }
+
+    #[test]
+    fn main_screen_q_does_not_change_screen() {
+        let mut state = test_state();
+        state.screen = Screen::Main;
+        handle_main(&mut state, KeyCode::Char('q'));
+        assert_eq!(state.screen, Screen::Main);
+    }
+
+    #[test]
+    fn main_screen_2_without_selection_shows_message() {
+        let mut state = test_state();
+        state.selected_disk = None;
+        handle_main(&mut state, KeyCode::Char('2'));
+        assert_eq!(state.screen, Screen::Main);
+        assert!(!state.message.is_empty());
+    }
+
+    // -----------------------------------------------------------------------
+    // QuickLayout
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn quick_layout_down_selects_next_template() {
+        let mut state = test_state();
+        state.screen = Screen::QuickLayout;
+        assert_eq!(state.template_index, 0);
+        handle_quick_layout(&mut state, KeyCode::Down);
+        assert_eq!(state.template_index, 1);
+        handle_quick_layout(&mut state, KeyCode::Down);
+        assert_eq!(state.template_index, 2);
+    }
+
+    #[test]
+    fn quick_layout_up_does_not_go_below_zero() {
+        let mut state = test_state();
+        state.screen = Screen::QuickLayout;
+        handle_quick_layout(&mut state, KeyCode::Up);
+        assert_eq!(state.template_index, 0);
+    }
+
+    #[test]
+    fn quick_layout_down_stays_within_bounds() {
+        let mut state = test_state();
+        state.screen = Screen::QuickLayout;
+        state.template_index = state.templates.len() - 1;
+        handle_quick_layout(&mut state, KeyCode::Down);
+        assert_eq!(state.template_index, state.templates.len() - 1);
+    }
+
+    #[test]
+    fn quick_layout_jk_keys_navigate() {
+        let mut state = test_state();
+        state.screen = Screen::QuickLayout;
+        handle_quick_layout(&mut state, KeyCode::Char('j'));
+        assert_eq!(state.template_index, 1);
+        handle_quick_layout(&mut state, KeyCode::Char('k'));
+        assert_eq!(state.template_index, 0);
+    }
+
+    #[test]
+    fn quick_layout_esc_returns_to_main() {
+        let mut state = test_state();
+        state.screen = Screen::QuickLayout;
+        handle_quick_layout(&mut state, KeyCode::Esc);
+        assert_eq!(state.screen, Screen::Main);
+    }
+
+    // -----------------------------------------------------------------------
+    // Preview → SizeEditor → WriteConfirm navigation
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn preview_e_key_goes_to_size_editor() {
+        let mut state = test_state();
+        state.screen = Screen::Preview;
+        state.draft = Some(test_draft());
+        handle_preview(&mut state, KeyCode::Char('e'));
+        assert_eq!(state.screen, Screen::SizeEditor);
+        assert_eq!(state.editor_selected, 0);
+    }
+
+    #[test]
+    fn preview_e_key_no_draft_stays() {
+        let mut state = test_state();
+        state.screen = Screen::Preview;
+        state.draft = None;
+        handle_preview(&mut state, KeyCode::Char('e'));
+        assert_eq!(state.screen, Screen::Preview);
+    }
+
+    #[test]
+    fn preview_b_key_goes_to_backup_confirm() {
+        let mut state = test_state();
+        state.screen = Screen::Preview;
+        handle_preview(&mut state, KeyCode::Char('b'));
+        assert_eq!(state.screen, Screen::BackupConfirm);
+        assert_eq!(state.backup_status, "尚未備份");
+    }
+
+    #[test]
+    fn preview_w_key_goes_to_write_confirm() {
+        let mut state = test_state();
+        state.screen = Screen::Preview;
+        handle_preview(&mut state, KeyCode::Char('w'));
+        assert_eq!(state.screen, Screen::WriteConfirm);
+    }
+
+    #[test]
+    fn preview_esc_returns_to_quick_layout() {
+        let mut state = test_state();
+        state.screen = Screen::Preview;
+        handle_preview(&mut state, KeyCode::Esc);
+        assert_eq!(state.screen, Screen::QuickLayout);
+    }
+
+    // -----------------------------------------------------------------------
+    // SizeEditor
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn size_editor_up_down_selects_partition() {
+        let mut state = test_state();
+        state.screen = Screen::SizeEditor;
+        state.draft = Some(test_draft());
+        // Start at partition 0
+        assert_eq!(state.editor_selected, 0);
+        // Move down
+        handle_size_editor(&mut state, KeyCode::Down);
+        assert_eq!(state.editor_selected, 1);
+        // Move down again
+        handle_size_editor(&mut state, KeyCode::Down);
+        assert_eq!(state.editor_selected, 2);
+        // Move up
+        handle_size_editor(&mut state, KeyCode::Up);
+        assert_eq!(state.editor_selected, 1);
+    }
+
+    #[test]
+    fn size_editor_up_stays_within_bounds() {
+        let mut state = test_state();
+        state.screen = Screen::SizeEditor;
+        state.draft = Some(test_draft());
+        handle_size_editor(&mut state, KeyCode::Up);
+        assert_eq!(state.editor_selected, 0);
+    }
+
+    #[test]
+    fn size_editor_down_stays_within_bounds() {
+        let mut state = test_state();
+        state.screen = Screen::SizeEditor;
+        state.draft = Some(test_draft());
+        // For 3 partitions, max index is 2
+        state.editor_selected = 2;
+        handle_size_editor(&mut state, KeyCode::Down);
+        assert_eq!(state.editor_selected, 2);
+    }
+
+    #[test]
+    fn size_editor_esc_returns_to_preview() {
+        let mut state = test_state();
+        state.screen = Screen::SizeEditor;
+        state.draft = Some(test_draft());
+        handle_size_editor(&mut state, KeyCode::Esc);
+        assert_eq!(state.screen, Screen::Preview);
+    }
+
+    #[test]
+    fn size_editor_applies_new_size() {
+        let mut state = test_state();
+        state.screen = Screen::SizeEditor;
+        state.draft = Some(test_draft());
+        // Type a new size
+        for c in "100GiB".chars() {
+            handle_size_editor(&mut state, KeyCode::Char(c));
+        }
+        assert_eq!(state.editor_input, "100GiB");
+        // Apply
+        handle_size_editor(&mut state, KeyCode::Enter);
+        // After applying, input should be cleared and draft updated
+        assert!(state.editor_input.is_empty());
+        assert!(state.draft.is_some());
+        // The first partition should now be 100 GiB
+        if let Some(draft) = &state.draft {
+            assert_eq!(draft.partitions[0].size_bytes, 100 * 1024 * 1024 * 1024);
+        }
+    }
+
+    #[test]
+    fn size_editor_invalid_size_shows_error() {
+        let mut state = test_state();
+        state.screen = Screen::SizeEditor;
+        state.draft = Some(test_draft());
+        // Type invalid size
+        for c in "abc".chars() {
+            handle_size_editor(&mut state, KeyCode::Char(c));
+        }
+        handle_size_editor(&mut state, KeyCode::Enter);
+        assert!(state.editor_error.is_some());
+    }
+
+    // -----------------------------------------------------------------------
+    // WriteConfirm
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn write_confirm_correct_phrase_proceeds() {
+        let mut state = test_state();
+        state.screen = Screen::WriteConfirm;
+        state.confirm_phrase = "test-phrase".into();
+        // Type the correct phrase
+        for c in "test-phrase".chars() {
+            handle_write_confirm(&mut state, KeyCode::Char(c));
+        }
+        handle_write_confirm(&mut state, KeyCode::Enter);
+        assert_eq!(state.screen, Screen::Main);
+        assert!(state.confirm_error.is_none());
+    }
+
+    #[test]
+    fn write_confirm_wrong_phrase_shows_error() {
+        let mut state = test_state();
+        state.screen = Screen::WriteConfirm;
+        state.confirm_phrase = "correct-phrase".into();
+        // Type wrong phrase
+        for c in "wrong".chars() {
+            handle_write_confirm(&mut state, KeyCode::Char(c));
+        }
+        handle_write_confirm(&mut state, KeyCode::Enter);
+        assert_eq!(state.screen, Screen::WriteConfirm);
+        assert!(state.confirm_error.is_some());
+    }
+
+    #[test]
+    fn write_confirm_empty_phrase_fails() {
+        let mut state = test_state();
+        state.screen = Screen::WriteConfirm;
+        state.confirm_phrase = "required-phrase".into();
+        // Don't type anything, just press Enter
+        handle_write_confirm(&mut state, KeyCode::Enter);
+        assert_eq!(state.screen, Screen::WriteConfirm);
+        assert!(state.confirm_error.is_some());
+    }
+
+    #[test]
+    fn write_confirm_backspace_works() {
+        let mut state = test_state();
+        state.screen = Screen::WriteConfirm;
+        state.confirm_phrase = "ab".into();
+        // Type "abc"
+        for c in "abc".chars() {
+            handle_write_confirm(&mut state, KeyCode::Char(c));
+        }
+        // Backspace twice → "a"
+        handle_write_confirm(&mut state, KeyCode::Backspace);
+        handle_write_confirm(&mut state, KeyCode::Backspace);
+        assert_eq!(state.confirm_input, "a");
+    }
+
+    #[test]
+    fn write_confirm_esc_returns_to_preview() {
+        let mut state = test_state();
+        state.screen = Screen::WriteConfirm;
+        handle_write_confirm(&mut state, KeyCode::Esc);
+        assert_eq!(state.screen, Screen::Preview);
+        assert!(state.confirm_input.is_empty());
+    }
+
+    // -----------------------------------------------------------------------
+    // BackupConfirm (pure state transitions)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn backup_confirm_b_without_selection_shows_error() {
+        let mut state = test_state();
+        state.screen = Screen::BackupConfirm;
+        state.selected_disk = None;
+        handle_backup_confirm(&mut state, KeyCode::Char('b'));
+        assert!(!state.backup_status.is_empty());
+    }
+
+    // -----------------------------------------------------------------------
+    // PartTable
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn part_table_f_goes_to_quick_layout() {
+        let mut state = test_state();
+        state.screen = Screen::PartTable;
+        handle_part_table(&mut state, KeyCode::Char('f'));
+        assert_eq!(state.screen, Screen::QuickLayout);
+    }
+
+    #[test]
+    fn part_table_esc_returns_to_main() {
+        let mut state = test_state();
+        state.screen = Screen::PartTable;
+        handle_part_table(&mut state, KeyCode::Esc);
+        assert_eq!(state.screen, Screen::Main);
+    }
+
+    // -----------------------------------------------------------------------
+    // handle_key dispatching
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn handle_key_dispatches_to_current_screen() {
+        let mut state = test_state();
+        state.screen = Screen::QuickLayout;
+        handle_key(&mut state, KeyCode::Esc);
+        assert_eq!(state.screen, Screen::Main);
+
+        // Now from Main, go to QuickLayout
+        handle_key(&mut state, KeyCode::Char('f'));
+        assert_eq!(state.screen, Screen::QuickLayout);
+    }
+}
