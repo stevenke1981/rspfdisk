@@ -38,3 +38,13 @@
 **Trigger:** 第一次 git commit 前 `gitPrecommitReview` 顯示 214 個檔案
 **Rule:** 在 commit 前檢查 `# Staged changes summary`，確認沒有意外包含大型 binary 或 IDE 設定檔
 **Source:** rust-spfdisk 全面驗收
+
+## Lesson #5 — 2026-07-09
+**Trigger:** GPT writer 驗證發現 Windows 標準模板草稿尾端超出 GPT usable range
+**Rule:** writer 必須把 `LayoutDraft` 視為寫入契約，寫入前驗證 table type、LBA range、overlap 與 sector alignment；layout engine 計算 `fill` / `fill-minus` 時必須扣除後續分割區與 1MiB 對齊 gap
+**Source:** rust-spfdisk GPT writer/layout hardening
+
+## Lesson #6 — 2026-07-09
+**Trigger:** CLI integration tests 覆寫 tracked `.rspbak` fixture
+**Rule:** 測試產生的 image/backup 檔應放入 ignored generated 目錄，避免 `cargo test` 污染 git working tree
+**Source:** rust-spfdisk workspace verification

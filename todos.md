@@ -50,6 +50,7 @@
 - [x] Compare primary/backup GPT。
 - [x] Generate GPT from layout draft。
 - [x] Write GPT to image file only。
+- [x] GPT writer 嚴格使用 `LayoutDraft.start_lba`，並拒絕 non-GPT、重疊、越界或未對齊草稿。
 
 ## Backup
 
@@ -76,6 +77,7 @@
 - [x] 支援 Linux ext4 單系統模板。
 - [x] 支援 Linux ext4 + home 模板。
 - [x] 支援 Linux BIOS + GPT biosboot 模板。
+- [x] `fill` / `fill-minus` 會保留後續分割區與 1MiB 對齊 gap，避免草稿尾端超出 GPT usable range。
 
 ## TUI
 
@@ -120,3 +122,5 @@
 - [x] linux-layout.md 完成（含 ext4 單系統、+home、swapfile、BIOS boot、btrfs 第二階段規劃）。
 - [x] safety.md 完成。
 - [x] final.md 持續更新。
+- [x] 修正 i18n doctest 範例，workspace doctest 可完整通過。
+- [x] 8GiB slow image-write 測試改為 `#[ignore]`，由 release gate `--include-ignored` 執行。

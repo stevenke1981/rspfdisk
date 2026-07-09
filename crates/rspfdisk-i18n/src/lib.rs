@@ -11,7 +11,7 @@
 //! let greeting = t!("hello");
 //!
 //! // With arguments
-//! let msg = t!("disk_size", disk_name);
+//! let msg = t!("main.target_disk", "/dev/sda");
 //!
 //! // Switch at runtime
 //! set_locale("en");

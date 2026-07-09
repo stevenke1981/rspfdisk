@@ -1,9 +1,10 @@
-use rspfdisk_core::SectorSize;
+use rspfdisk_core::{
+    BootMode, LayoutDraft, PartitionDraft, PartitionTableKind, PartitionType, SectorSize,
+};
 use rspfdisk_disk::{create_test_image, BlockDevice, FileBlockDevice, WritableBlockDevice};
 use rspfdisk_gpt::header::GptHeader;
 use rspfdisk_gpt::GptError;
 use rspfdisk_gpt::{parse_gpt, write_gpt_from_draft};
-use rspfdisk_layouts::{generate_layout, load_template};
 
 fn workspace_image(name: &str) -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -12,19 +13,23 @@ fn workspace_image(name: &str) -> std::path::PathBuf {
 }
 
 fn write_valid_gpt(path: &std::path::Path) {
-    let mut dev = create_test_image(path, 8 * 1024 * 1024 * 1024).unwrap();
-    let template = load_template("../../templates/windows_uefi_standard.toml").unwrap();
-    let disk = rspfdisk_core::DiskInfo {
-        path: path.display().to_string(),
-        size_bytes: dev.size_bytes(),
-        logical_sector_size: SectorSize::S512,
-        physical_sector_size: Some(SectorSize::S512),
-        model: None,
-        serial: None,
-        removable: false,
-        read_only: false,
+    let mut dev = create_test_image(path, 256 * 1024 * 1024).unwrap();
+    let draft = LayoutDraft {
+        template_name: "test".to_string(),
+        display_name: "Test".to_string(),
+        table: PartitionTableKind::Gpt,
+        boot_mode: BootMode::Uefi,
+        partitions: vec![PartitionDraft {
+            name: "Data".to_string(),
+            start_lba: 2048,
+            size_bytes: 64 * 1024 * 1024,
+            partition_type: PartitionType::MicrosoftBasicData,
+            filesystem: None,
+            mount_point: None,
+            note: None,
+            flags: Vec::new(),
+        }],
     };
-    let draft = generate_layout(&template, &disk, None).unwrap();
     write_gpt_from_draft(&mut dev, &draft).unwrap();
 }
 

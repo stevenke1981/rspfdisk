@@ -337,3 +337,31 @@ cargo test --workspace -- --ignored   → 5 slow tests passed
 - QEMU BIOS/UEFI 實機開機測試（需 Linux 環境 + grub-mkrescore）
 - Boot ISO 完整建置
 - TUI 自動化集成測試
+
+## 2026-07-09 — GPT writer/layout hardening + release build
+
+**任務：** 檢視專案、完成可落地改善、release 編譯、commit/push。
+
+**修正：**
+- `rspfdisk-layouts`: `fill` / `fill-minus` 改為在配置時保留後續分割區最小需求與 1MiB alignment gap，避免草稿尾端超出 GPT usable range。
+- `rspfdisk-gpt`: writer 改為嚴格使用 `LayoutDraft.start_lba`，並拒絕 non-GPT、分割區過多、零大小、sector 未對齊、越界與重疊草稿。
+- `rspfdisk-gpt` tests: 新增 writer 保留 draft start LBA、拒絕 MBR draft、拒絕 overlap draft 的測試；負向 GPT 測試改用 256MiB 小 image，避免 Windows 8GiB sync 卡住。
+- `rspfdisk-i18n`: 修正 doctest 範例中的未定義變數。
+- CLI tests: 測試 image/backup 改放 `tests/images/generated/`，避免覆寫 tracked fixture。
+- 慢速 8GiB image-write 測試改為 `#[ignore]`，預設 workspace 測試不再卡 Windows image sync；release gate 仍可用 `--include-ignored` 執行。
+- `.gitignore`: 忽略 `tests/images/generated/` 與本機 `.codebase-memory/`。
+
+**驗證：**
+```text
+C:\Users\steven\.cargo\bin\cargo.exe fmt --check                              → passed
+CARGO_TARGET_DIR=target\codex-verify cargo test -p rspfdisk-gpt              → passed
+CARGO_TARGET_DIR=target\codex-verify cargo test -p rspfdisk-layouts          → passed
+CARGO_TARGET_DIR=target\codex-verify cargo test -p rspfdisk-i18n --doc       → passed
+CARGO_TARGET_DIR=target\codex-verify cargo test --workspace                  → passed (fast; 3 slow image-write tests ignored)
+CARGO_TARGET_DIR=target\codex-verify cargo clippy --workspace -- -D warnings → passed
+CARGO_TARGET_DIR=target\codex-verify cargo build --workspace --release       → passed
+```
+
+**注意：**
+- 本機 shell 的 `PATH` 沒有 `cargo`，本次使用完整路徑 `C:\Users\steven\.cargo\bin\cargo.exe`。
+- QEMU BIOS/UEFI 實機開機驗收仍需 Linux + QEMU/OVMF 環境。

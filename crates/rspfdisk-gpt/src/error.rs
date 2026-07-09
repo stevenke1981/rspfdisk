@@ -20,6 +20,8 @@ pub enum GptError {
     PartitionOverlap,
     #[error("alignment violation: {0}")]
     AlignmentViolation(String),
+    #[error("invalid layout draft: {0}")]
+    InvalidLayout(String),
     #[error("no GPT header found")]
     NoGptHeader,
 }

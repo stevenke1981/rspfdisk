@@ -29,6 +29,7 @@ fn layout_dry_run_windows() {
 }
 
 #[test]
+#[ignore = "slow 8GiB image write; covered by release gate with --include-ignored"]
 fn layout_write_and_inspect() {
     let path = ensure_sparse_image("integration-write.img");
     let path_str = path.to_str().unwrap();

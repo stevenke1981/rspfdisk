@@ -9,7 +9,7 @@ pub fn workspace_image(name: &str) -> PathBuf {
 }
 
 pub fn ensure_sparse_image(name: &str) -> PathBuf {
-    let path = workspace_image(name);
+    let path = workspace_image("generated").join(name);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).unwrap();
     }
