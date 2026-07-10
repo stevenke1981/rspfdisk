@@ -92,6 +92,7 @@
 - [x] 容量編輯器（Screen::SizeEditor，互動式編輯分區大小，含即時重算）。
 - [x] 備份確認（Screen::BackupConfirm，建立與確認備份後才可寫入）。
 - [x] 寫入確認畫面（WriteConfirm 螢幕，含確認詞輸入驗證）。
+- [x] TUI 寫入流程強制先建立備份，且僅對一般 image 檔執行 GPT 寫入與讀回驗證。
 
 ## Boot Media
 

@@ -48,3 +48,8 @@
 **Trigger:** CLI integration tests 覆寫 tracked `.rspbak` fixture
 **Rule:** 測試產生的 image/backup 檔應放入 ignored generated 目錄，避免 `cargo test` 污染 git working tree
 **Source:** rust-spfdisk workspace verification
+
+## Lesson #7 — 2026-07-10
+**Trigger:** TUI 在確認詞正確後顯示「寫入完成（模擬）」但沒有寫入 image
+**Rule:** 破壞性操作的 UI 不得宣稱模擬結果為成功；寫入流程必須要求有效備份、限制目標類型，並以讀回驗證作為完成條件
+**Source:** rust-spfdisk TUI image write hardening

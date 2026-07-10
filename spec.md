@@ -173,10 +173,12 @@ linux_ext4_home
 ...
 ```
 
-### 6.4 待實作螢幕
+### 6.4 進階螢幕與寫入限制
 
-- 容量編輯器（Screen::SizeEditor）— 互動式編輯分區大小
-- 備份確認（Screen::BackupConfirm）— 寫入前獨立備份確認
+- 容量編輯器（Screen::SizeEditor）— 互動式編輯分區大小。
+- 備份確認（Screen::BackupConfirm）— 寫入前獨立建立並確認備份。
+- TUI v0.1 僅允許寫入一般 image 檔，不允許對 `/dev/*` 或 `PhysicalDrive` 執行寫入。
+- 確認寫入後必須重新解析 GPT，核對分區數量、起始 LBA 與大小。
 
 ## 7. CLI 介面
 

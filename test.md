@@ -161,6 +161,13 @@ qemu-system-x86_64 -m 1024 -bios OVMF.fd -cdrom dist/rspfdisk-boot.iso -hda test
 - 顯示草稿。
 - 按 Q 離開。
 
+### TUI 自動化狀態與 image 寫入測試
+
+- 未建立備份時，Preview 的寫入操作必須導向 BackupConfirm。
+- BackupConfirm 沒有有效備份檔時不得進入 WriteConfirm。
+- WriteConfirm 必須拒絕實體磁碟或不存在的 image。
+- 對臨時 image 寫入 GPT 後，必須重新解析並核對分區數量、起始 LBA 與大小。
+
 ## Safety Tests
 
 - 沒有 `--write` 不得寫入。

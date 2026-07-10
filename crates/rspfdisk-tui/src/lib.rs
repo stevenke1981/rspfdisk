@@ -28,7 +28,7 @@
 //! ## i18n
 //! Language is selected via `RSPFDISK_LANG` env var (zh-TW default, en for English).
 
-use anyhow::Result;
+use anyhow::{anyhow, bail, Context, Result};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use ratatui::backend::CrosstermBackend;
@@ -40,12 +40,14 @@ use ratatui::Terminal;
 use std::io;
 use std::path::Path;
 
-use rspfdisk_core::{DiskInfo, LayoutDraft};
-use rspfdisk_disk::{list_block_devices, open_read_only, BlockDevice};
-use rspfdisk_gpt::parse_gpt;
+use rspfdisk_core::{ChangePlan, DiskInfo, LayoutDraft, PartitionTable};
+use rspfdisk_disk::{
+    classify_path, list_block_devices, open_read_only, open_read_write, BlockDevice, DevicePathKind,
+};
+use rspfdisk_gpt::{parse_gpt, write_gpt_from_draft};
 use rspfdisk_layouts::{build_diff_report, generate_layout, load_template, TemplateRegistry};
 use rspfdisk_mbr::parse_mbr;
-use rspfdisk_safety::{assess_disk, disk_confirmation_phrase};
+use rspfdisk_safety::{assess_disk, confirm_write, disk_confirmation_phrase, ConfirmationOptions};
 
 // ---------------------------------------------------------------------------
 // Screens
@@ -812,16 +814,16 @@ fn handle_preview(state: &mut AppState, key: KeyCode) {
             state.screen = Screen::BackupConfirm;
         }
         KeyCode::Char('w') | KeyCode::Char('W') => {
-            // Prepare write confirmation
-            let phrase = state
-                .selected_disk
+            if state
+                .backup_path
                 .as_deref()
-                .map(disk_confirmation_phrase)
-                .unwrap_or_default();
-            state.confirm_phrase = phrase;
-            state.confirm_input.clear();
-            state.confirm_error = None;
-            state.screen = Screen::WriteConfirm;
+                .is_some_and(|p| Path::new(p).is_file())
+            {
+                prepare_write_confirmation(state);
+            } else {
+                state.backup_status = "寫入前必須先建立備份".to_string();
+                state.screen = Screen::BackupConfirm;
+            }
         }
         KeyCode::Esc => state.screen = Screen::QuickLayout,
         KeyCode::Char('q') | KeyCode::Char('Q') => {}
@@ -838,17 +840,24 @@ fn handle_write_confirm(state: &mut AppState, key: KeyCode) {
             state.confirm_input.pop();
         }
         KeyCode::Enter => {
-            // Validate confirmation phrase
             if state.confirm_input.trim() == state.confirm_phrase {
-                state.log("✅ 確認文字正確，執行寫入...".to_string());
-                // In a real TUI, this would call the writer.
-                // For now, record success and return to main.
-                state.confirm_error = None;
-                state.screen = Screen::Main;
-                state.message = format!(
-                    "✅ 寫入完成（模擬） — {}",
-                    state.selected_disk.as_deref().unwrap_or("?")
-                );
+                state.log("確認文字正確，開始寫入 image...".to_string());
+                match write_confirmed_image(state) {
+                    Ok(partition_count) => {
+                        state.confirm_error = None;
+                        state.screen = Screen::Main;
+                        state.message = format!(
+                            "寫入完成並驗證 {partition_count} 個分區 — {}",
+                            state.selected_disk.as_deref().unwrap_or("?")
+                        );
+                        state.log(state.message.clone());
+                    }
+                    Err(error) => {
+                        let message = format!("寫入失敗: {error:#}");
+                        state.confirm_error = Some(message.clone());
+                        state.log(message);
+                    }
+                }
             } else {
                 state.confirm_error = Some(format!(
                     "輸入「{}」不正確，應為「{}」",
@@ -979,22 +988,93 @@ fn handle_backup_confirm(state: &mut AppState, key: KeyCode) {
             }
         }
         KeyCode::Char('w') | KeyCode::Char('W') => {
-            // Proceed to write confirmation
-            let phrase = state
-                .selected_disk
+            if state
+                .backup_path
                 .as_deref()
-                .map(disk_confirmation_phrase)
-                .unwrap_or_default();
-            state.confirm_phrase = phrase;
-            state.confirm_input.clear();
-            state.confirm_error = None;
-            state.screen = Screen::WriteConfirm;
+                .is_some_and(|p| Path::new(p).is_file())
+            {
+                prepare_write_confirmation(state);
+            } else {
+                state.backup_status = "寫入前必須先建立有效備份".to_string();
+            }
         }
         KeyCode::Esc => {
             state.screen = Screen::Preview;
         }
         _ => {}
     }
+}
+
+fn prepare_write_confirmation(state: &mut AppState) {
+    state.confirm_phrase = state
+        .selected_disk
+        .as_deref()
+        .map(disk_confirmation_phrase)
+        .unwrap_or_default();
+    state.confirm_input.clear();
+    state.confirm_error = None;
+    state.screen = Screen::WriteConfirm;
+}
+
+fn write_confirmed_image(state: &AppState) -> Result<usize> {
+    let path = state.selected_disk.as_deref().context("未選取目標 image")?;
+    let target = Path::new(path);
+    if classify_path(path) != DevicePathKind::ImageFile || !target.is_file() {
+        bail!("TUI 僅允許寫入一般 image 檔案，不支援實體磁碟");
+    }
+
+    let backup_path = state.backup_path.as_deref().context("尚未建立備份")?;
+    if !Path::new(backup_path).is_file() {
+        bail!("備份檔不存在: {backup_path}");
+    }
+
+    let draft = state.draft.as_ref().context("沒有可寫入的分割區草稿")?;
+    let read_only = open_read_only(path).map_err(|error| anyhow!("開啟 image 失敗: {error}"))?;
+    let disk_info = read_only.info();
+    let current = parse_gpt(&read_only).unwrap_or_else(|_| PartitionTable::empty());
+    let diff = build_diff_report(&current, draft);
+    let plan = ChangePlan {
+        disk_path: path.to_string(),
+        layout: draft.clone(),
+        diff,
+        backup_path: Some(backup_path.to_string()),
+        dry_run: false,
+    };
+
+    let _token = confirm_write(
+        &plan,
+        &ConfirmationOptions {
+            write: true,
+            dry_run: false,
+            image_confirmed: true,
+            confirmation_phrase: Some(state.confirm_input.trim().to_string()),
+            backup_path: Some(backup_path.to_string()),
+            accept_system_disk_risk: false,
+        },
+        &disk_info,
+    )
+    .map_err(|error| anyhow!("安全確認失敗: {error}"))?;
+
+    drop(read_only);
+    let mut writable =
+        open_read_write(path).map_err(|error| anyhow!("開啟 image 寫入失敗: {error}"))?;
+    write_gpt_from_draft(&mut writable, draft).context("寫入 GPT")?;
+    let verified = parse_gpt(&writable).context("寫入後讀回 GPT")?;
+
+    if verified.partitions.len() != draft.partitions.len() {
+        bail!(
+            "讀回分區數量不符: 預期 {}，實際 {}",
+            draft.partitions.len(),
+            verified.partitions.len()
+        );
+    }
+    for (expected, actual) in draft.partitions.iter().zip(&verified.partitions) {
+        if actual.start_lba != expected.start_lba || actual.size_bytes != expected.size_bytes {
+            bail!("讀回分區「{}」的位置或大小不符", expected.name);
+        }
+    }
+
+    Ok(verified.partitions.len())
 }
 
 // ---------------------------------------------------------------------------
@@ -1302,11 +1382,12 @@ mod tests {
     }
 
     #[test]
-    fn preview_w_key_goes_to_write_confirm() {
+    fn preview_w_key_requires_backup_first() {
         let mut state = test_state();
         state.screen = Screen::Preview;
         handle_preview(&mut state, KeyCode::Char('w'));
-        assert_eq!(state.screen, Screen::WriteConfirm);
+        assert_eq!(state.screen, Screen::BackupConfirm);
+        assert!(state.backup_status.contains("必須先建立備份"));
     }
 
     #[test]
@@ -1407,17 +1488,74 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn write_confirm_correct_phrase_proceeds() {
+    fn write_confirm_correct_phrase_without_image_is_rejected() {
         let mut state = test_state();
         state.screen = Screen::WriteConfirm;
         state.confirm_phrase = "test-phrase".into();
-        // Type the correct phrase
         for c in "test-phrase".chars() {
             handle_write_confirm(&mut state, KeyCode::Char(c));
         }
         handle_write_confirm(&mut state, KeyCode::Enter);
+        assert_eq!(state.screen, Screen::WriteConfirm);
+        assert!(state
+            .confirm_error
+            .as_deref()
+            .is_some_and(|error| error.contains("僅允許寫入一般 image")));
+    }
+
+    #[test]
+    fn write_confirm_writes_and_verifies_image() {
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        let id = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock before Unix epoch")
+            .as_nanos();
+        let image_path = std::env::temp_dir().join(format!("rspfdisk-tui-{id}.img"));
+        let backup_path = std::env::temp_dir().join(format!("rspfdisk-tui-{id}.rspbak"));
+        let device = rspfdisk_disk::create_test_image(&image_path, 64 * 1024 * 1024)
+            .expect("create test image");
+        rspfdisk_backup::create_backup(&device, &backup_path).expect("create image backup");
+        drop(device);
+
+        let image = image_path.to_string_lossy().into_owned();
+        let mut state = test_state();
+        state.screen = Screen::WriteConfirm;
+        state.selected_disk = Some(image.clone());
+        state.draft = Some(LayoutDraft {
+            template_name: "tui-write-test".into(),
+            display_name: "TUI write test".into(),
+            table: PartitionTableKind::Gpt,
+            boot_mode: BootMode::Uefi,
+            partitions: vec![PartitionDraft {
+                name: "Data".into(),
+                start_lba: 2048,
+                size_bytes: 8 * 1024 * 1024,
+                partition_type: PartitionType::MicrosoftBasicData,
+                filesystem: None,
+                mount_point: None,
+                note: None,
+                flags: vec![],
+            }],
+        });
+        state.backup_path = Some(backup_path.to_string_lossy().into_owned());
+        state.confirm_phrase = disk_confirmation_phrase(&image);
+        for c in state.confirm_phrase.clone().chars() {
+            handle_write_confirm(&mut state, KeyCode::Char(c));
+        }
+
+        handle_write_confirm(&mut state, KeyCode::Enter);
+
         assert_eq!(state.screen, Screen::Main);
         assert!(state.confirm_error.is_none());
+        assert!(state.message.contains("寫入完成並驗證 1 個分區"));
+        let verified = rspfdisk_disk::open_read_only(&image_path).expect("reopen test image");
+        let table = parse_gpt(&verified).expect("parse written GPT");
+        assert_eq!(table.partitions.len(), 1);
+        assert_eq!(table.partitions[0].start_lba, 2048);
+
+        std::fs::remove_file(&image_path).expect("remove test image");
+        std::fs::remove_file(&backup_path).expect("remove test backup");
     }
 
     #[test]
@@ -1480,6 +1618,15 @@ mod tests {
         state.selected_disk = None;
         handle_backup_confirm(&mut state, KeyCode::Char('b'));
         assert!(!state.backup_status.is_empty());
+    }
+
+    #[test]
+    fn backup_confirm_w_without_backup_stays_on_screen() {
+        let mut state = test_state();
+        state.screen = Screen::BackupConfirm;
+        handle_backup_confirm(&mut state, KeyCode::Char('w'));
+        assert_eq!(state.screen, Screen::BackupConfirm);
+        assert!(state.backup_status.contains("有效備份"));
     }
 
     // -----------------------------------------------------------------------

@@ -6,6 +6,34 @@
 - 版本：v0.1.0
 - 實作範圍：Rust workspace、Disk Core、MBR/GPT、Layouts、Safety、Backup、CLI、TUI、Boot media、UEFI GPT viewer
 
+## 2026-07-10 — TUI image 寫入流程完成
+
+**任務：** 移除 WriteConfirm 的模擬成功行為，完成受控 image 寫入。
+
+**修正：**
+- Preview 未備份時強制導向 BackupConfirm。
+- BackupConfirm 沒有有效備份檔時禁止進入 WriteConfirm。
+- WriteConfirm 僅允許一般 image 檔，建立 `ChangePlan` 並取得 `WriteToken` 後才寫入 GPT。
+- 寫入後重新解析 GPT，核對分區數量、起始 LBA 與大小；失敗時停留在確認畫面並顯示錯誤。
+- 新增臨時 64MiB image 的端到端單元測試，以及無備份、非 image 拒絕測試。
+
+**限制：**
+- TUI v0.1 不開放 `/dev/*` 或 Windows `PhysicalDrive` 寫入；真實磁碟仍須使用 CLI 的完整風險旗標流程。
+
+**驗證：**
+```text
+cargo fmt --all -- --check                              → passed
+cargo test -p rspfdisk-tui                              → 31 passed
+cargo test --workspace                                  → passed（3 個既有 8GiB slow tests ignored）
+cargo clippy --workspace -- -D warnings                 → passed
+cargo build --workspace --release                       → passed
+pwsh -File tools/qemu-test.ps1 -ValidateOnly            → passed
+```
+
+**未執行：**
+- 3 個既有 8GiB ignored image tests；本次改以 64MiB TUI image 端到端測試覆蓋變更路徑。
+- Linux + QEMU/OVMF 實際開機；目前 Windows 主機只完成 bundle validate-only。
+
 ## v0.1 MVP 驗收
 
 - [x] MBR/GPT 唯讀解析
