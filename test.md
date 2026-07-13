@@ -69,6 +69,7 @@ Disposable Real Disk Tests
 - Linux ext4 template。
 - Linux home template。
 - Linux biosboot template。
+- Windows + Linux fresh-disk multiboot template。
 - small disk rejection。
 - insufficient space rejection。
 - alignment validation。
@@ -134,7 +135,8 @@ qemu-system-x86_64 -m 1024 -cdrom dist/rspfdisk-boot.iso -hda test-empty.img
 驗收：
 
 - ISO 可啟動。
-- 自動進入 TUI 或 CLI shell。
+- serial log 必須出現 `RSPFDISK_TUI_READY`；只有 timeout 不算通過。
+- 預設自動進入導引 TUI，recovery 選單才進 CLI shell。
 - 可 inspect 附加硬碟。
 
 ### UEFI ISO test
@@ -146,12 +148,15 @@ qemu-system-x86_64 -m 1024 -bios OVMF.fd -cdrom dist/rspfdisk-boot.iso -hda test
 驗收：
 
 - UEFI 可啟動。
+- serial log 必須出現 `RSPFDISK_TUI_READY`。
 - 可進入工具。
 - 可辨識 GPT。
 
 ## TUI Smoke Tests
 
 - 開啟 TUI。
+- 首頁顯示 Windows、Linux、macOS、多重開機四種情境。
+- 未選目標時，選情境必須先導向磁碟/image 選擇。
 - 選取 image disk。
 - 進入快速分區。
 - 選 Windows。
@@ -160,6 +165,13 @@ qemu-system-x86_64 -m 1024 -bios OVMF.fd -cdrom dist/rspfdisk-boot.iso -hda test
 - 選 Linux。
 - 顯示草稿。
 - 按 Q 離開。
+
+## Boot Bundle Tests
+
+- initramfs 包含 `/bin/sh`、`mount`、必要 runtime 目錄與 Rust binary 的動態依賴。
+- ISO 打包缺少 `grub-mkrescue` 或 `xorriso` 時明確失敗，不產生非開機 fallback。
+- USB image 只寫入 `dist/` 暫存 image，含 GPT/FAT32 ESP、`BOOTX64.EFI`、kernel、initramfs 與 GRUB 設定。
+- PowerShell/WSL 包裝器必須傳回 Linux builder 的失敗，不可把空檔或缺檔宣稱成功。
 
 ### TUI 自動化狀態與 image 寫入測試
 

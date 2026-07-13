@@ -10,7 +10,7 @@ Usage: tools/make-boot-iso.sh [--kernel PATH] [--skip-build]
 Environment:
   KERNEL   Path to vmlinuz (auto-detected from /boot if unset)
 
-Requires: cargo, cpio, gzip, grub-mkrescue (or xorriso + grub files)
+Requires: cargo, cpio, gzip, ldd, busybox, grub-mkrescue, xorriso
 EOF
 }
 
@@ -39,6 +39,9 @@ main() {
     require_cmd cargo
     require_cmd cpio
     require_cmd gzip
+    require_cmd ldd
+    require_cmd grub-mkrescue
+    require_cmd xorriso
     ensure_dirs
 
     local bin_dir stage cpio kernel
@@ -57,21 +60,13 @@ main() {
     cp "${kernel}" "${BUILD_DIR}/boot/vmlinuz"
     cp "${cpio}" "${BUILD_DIR}/boot/initramfs.img"
     cp "${GRUB_CFG}" "${BUILD_DIR}/boot/grub/grub.cfg"
+    cp "${MEDIA_MARKER}" "${BUILD_DIR}/rspfdisk-media"
 
     mkdir -p "${BUILD_DIR}/EFI/BOOT"
     cp "${GRUB_CFG}" "${BUILD_DIR}/EFI/BOOT/grub.cfg" 2>/dev/null || true
 
-    if command -v grub-mkrescue >/dev/null 2>&1; then
-        log "building ISO with grub-mkrescue"
-        grub-mkrescue -o "${ISO_OUTPUT}" "${BUILD_DIR}" -- \
-            -append "quiet init=/init rdinit=/init"
-    elif command -v xorriso >/dev/null 2>&1; then
-        log "building ISO with xorriso (no bootloader embedding)"
-        xorriso -as mkisofs -r -J -o "${ISO_OUTPUT}" "${BUILD_DIR}"
-        log "WARN: xorriso-only ISO may not be BIOS-bootable without isolinux/grub"
-    else
-        die "need grub-mkrescue or xorriso"
-    fi
+    log "building bootable ISO with grub-mkrescue"
+    grub-mkrescue -o "${ISO_OUTPUT}" "${BUILD_DIR}"
 
     log "ISO ready: ${ISO_OUTPUT}"
     ls -lh "${ISO_OUTPUT}"

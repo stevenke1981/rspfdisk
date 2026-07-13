@@ -1,18 +1,62 @@
 #!/bin/sh
-# Rust SPFDisk minimal init — launches TUI on boot.
+# Rust SPFDisk minimal init — launches the guided TUI by default.
 export PATH=/usr/bin:/bin:/sbin
+export RSPFDISK_BOOT_MODE=guided
+export TERM="${TERM:-linux}"
 
 mount -t proc proc /proc 2>/dev/null
 mount -t sysfs sysfs /sys 2>/dev/null
 mount -t devtmpfs devtmpfs /dev 2>/dev/null
 
 if [ -d /dev ]; then
-    for tty in /dev/ttyS0 /dev/tty0 /dev/console; do
+    for tty in /dev/tty0 /dev/console /dev/ttyS0; do
         [ -c "$tty" ] && exec >/dev/"$(basename "$tty")" 2>&1
     done
 fi
 
+emit_marker() {
+    marker="$1"
+    echo "$marker"
+    if [ -c /dev/ttyS0 ]; then
+        printf '%s\n' "$marker" > /dev/ttyS0
+    fi
+}
+
+# GRUB's recovery entry supplies one exact token. Read the command line
+# without eval or word execution so edited kernel arguments cannot run code.
+kernel_cmdline=
+if [ -r /proc/cmdline ]; then
+    IFS= read -r kernel_cmdline < /proc/cmdline || :
+fi
+
+has_kernel_arg() {
+    case " ${kernel_cmdline} " in
+        *" $1 "*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+enter_recovery_shell() {
+    export RSPFDISK_BOOT_MODE=recovery-cli
+    echo "Recovery/CLI shell requested (advanced mode)."
+    echo "CLI writes remain possible only through their normal safety flags; inspect first."
+    echo "Try: rspfdisk list"
+    echo "Try: rspfdisk inspect /path/to/disk.img"
+    echo "Use --dry-run before any image write operation."
+    if [ -x /bin/sh ]; then
+        emit_marker "RSPFDISK_RECOVERY_SHELL"
+        exec /bin/sh
+    fi
+    echo "Recovery shell unavailable: /bin/sh was not found."
+    exit 127
+}
+
+if has_kernel_arg rspfdisk_cli=1; then
+    enter_recovery_shell
+fi
+
 echo "Rust SPFDisk boot environment"
+echo "Guided mode: choose a disk or image, review the draft, and confirm writes explicitly."
 echo "Press Q in TUI to exit."
 
 if [ -x /usr/bin/rspfdisk-tui ]; then
@@ -20,4 +64,4 @@ if [ -x /usr/bin/rspfdisk-tui ]; then
 fi
 
 echo "rspfdisk-tui not found; dropping to shell."
-exec /bin/sh
+enter_recovery_shell

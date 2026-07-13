@@ -17,6 +17,7 @@ function Test-BootBundle {
     $required = @(
         "boot\initramfs\init",
         "boot\grub\grub.cfg",
+        "boot\rspfdisk-media",
         "tools\make-boot-iso.sh",
         "tools\make-boot-usb.sh",
         "tools\qemu-test.sh",

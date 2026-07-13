@@ -37,7 +37,6 @@ jobs:
 
   boot-iso:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -45,9 +44,30 @@ jobs:
       - name: Install ISO build deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y grub-pc-bin xorriso cpio gzip
+          sudo apt-get install -y \
+            busybox-static cpio dosfstools fdisk gzip grub-common \
+            grub-efi-amd64-bin grub-pc-bin linux-image-generic mtools ovmf \
+            parted qemu-system-x86 xorriso
 
-      - name: Try boot ISO build
+      - name: Build boot ISO and USB image
         run: |
           chmod +x tools/*.sh tools/lib/*.sh
-          bash tools/verify-linux.sh --with-iso || echo "ISO build skipped or failed"
+          bash tools/verify-linux.sh --with-iso
+          bash tools/make-boot-usb.sh --size-mb 256
+
+      - name: Boot guided TUI in BIOS QEMU
+        run: SERIAL_LOG=dist/qemu-iso-serial.log bash tools/qemu-test.sh --bios
+
+      - name: Boot guided TUI from USB image in UEFI QEMU
+        run: |
+          OVMF_FD=/usr/share/OVMF/OVMF_CODE.fd \
+          SERIAL_LOG=dist/qemu-usb-serial.log \
+          bash tools/qemu-test.sh --uefi --usb
+
+      - name: Upload boot serial log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rspfdisk-boot-serial-log
+          path: dist/qemu-*-serial.log
+          if-no-files-found: error

@@ -53,3 +53,13 @@
 **Trigger:** TUI 在確認詞正確後顯示「寫入完成（模擬）」但沒有寫入 image
 **Rule:** 破壞性操作的 UI 不得宣稱模擬結果為成功；寫入流程必須要求有效備份、限制目標類型，並以讀回驗證作為完成條件
 **Source:** rust-spfdisk TUI image write hardening
+
+## Lesson #8 — 2026-07-14
+**Trigger:** 既有 ISO/USB 腳本能產生檔案，但 initramfs 缺少 shell/runtime，xorriso fallback 也沒有嵌入 bootloader
+**Rule:** 開機媒體的「bundle 結構存在」不等於可開機；建置必須包含完整 runtime 與 bootloader，缺少必要工具就明確失敗
+**Source:** bootable guided installer hardening
+
+## Lesson #9 — 2026-07-14
+**Trigger:** QEMU 腳本把未觀察到 TUI 的 timeout 當成成功
+**Rule:** 非互動 boot smoke 必須等待穩定 readiness marker；timeout 只有在 marker 已出現後才能視為可接受的持續執行
+**Source:** bootable guided installer hardening

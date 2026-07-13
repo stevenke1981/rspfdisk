@@ -3,39 +3,72 @@
 > 現代磁碟分割工具 — Rust 實作，支援 MBR/GPT、快速分區模板、安全交易式寫入、中英文 TUI。  
 > 繼承經典 SPFDisk 精神，專為現代 UEFI/GPT/NVMe 系統打造。
 
-**版本：v0.1.0** | [English](README.md) | [spec.md](spec.md) | [CHANGELOG.md](CHANGELOG.md)
+**版本：v0.1.0** | [English](README.md) | [可開機導引安裝](docs/bootable-guided-install.md) | [spec.md](spec.md) | [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
 ## 給人類使用者
 
-### 功能特色
+### 從這裡開始：可開機導引安裝
 
-- **讀取** MBR 與 GPT 分割表（含 CRC 驗證）
-- **快速分區精靈** — 11 組 Windows / macOS / Linux 模板
-- **安全寫入** — 僅限 image 寫入、`--confirm` 確認、自動備份、讀回驗證
-- **備份/還原** — `.rspbak` 格式（SHA256、磁碟身份檢查、dry-run）
-- **TUI 介面** — 8 螢幕中英文終端介面（ratatui + crossterm）
-- **CLI 指令** — `list`、`inspect`、`backup`、`restore`、`layout`、`tui`
-- **Linux 真實磁碟** — `/dev` 掃描、sysfs 查詢、風險評估、受控寫入
-- **開機媒體** — Boot ISO/USB 打包腳本、QEMU 測試
-- **UEFI** — `BOOTX64.EFI` 唯讀 GPT 檢視器（概念驗證）
-- **多國語系** — 繁體中文（預設）與英文，透過 `RSPFDISK_LANG` 切換
+SPFDisk 是**分割區準備工具**，不是作業系統安裝程式。它可以檢查磁碟、建立 Windows/Linux/macOS/多重開機分割區草稿、顯示變更、建立備份，並在明確確認後套用通過安全門檻的配置。
 
-### 快速開始
+它**不會安裝 Windows、Linux 或 macOS**，也不會安裝 Windows Boot Manager、Linux GRUB/systemd-boot、macOS boot components 或其他目標磁碟 bootloader。SPFDisk 媒體上的 GRUB2 只負責啟動 SPFDisk 環境，不會被安裝到目標磁碟。準備完成後，請改用對應的官方 OS 安裝媒體，讓該安裝程式完成 OS 與 bootloader 工作。
+
+完整的新手流程請參考[可開機導引安裝](docs/bootable-guided-install.md)。
+
+### 導引流程
+
+1. **從 GRUB2 媒體開機。** 依[開機媒體文件](docs/boot-media.md)建立或取得 SPFDisk ISO/USB。在韌體開機選單選取該媒體，再從 GRUB2 選擇 Rust SPFDisk 導引/TUI 入口。CLI shell 入口只供復原或進階使用。
+2. **選取並檢查目標。** 確認磁碟型號、容量、序號或其他身份資訊。選擇配置前先讀取目前的 MBR/GPT 分割表。練習與自動化測試請使用 image 檔。
+3. **選擇情境。** 選取 **Windows**、**Linux**、**macOS** 或 **Multiboot**，再選擇對應版面與容量選項。情境名稱是給使用者的選擇；模板識別名稱屬於實作細節。
+4. **預覽分割區草稿。** 檢查分割表類型、起訖 sector、容量、對齊、檔案系統/類型說明，以及相對於目前磁碟的差異。預覽期間不應發生寫入。
+5. **寫入前備份。** 建立 `.rspbak` 備份，並把副本放在目標磁碟以外。檢查備份 metadata 與磁碟身份。
+6. **Dry-run 並明確確認。** 再次核對目標與最後差異。只有明確確認步驟可以授權通過安全門檻的寫入。磁碟身份、版面或預計安裝的 OS 只要有不清楚，就取消。
+7. **交接給 OS 安裝程式。** 目標準備完成後重新開機或關機，改從官方 Windows、Linux 或 macOS 安裝媒體開機，選取預計使用的已準備空間並依安裝程式操作。多重開機時逐一安裝各 OS，且每次都確認目標分割區。
+
+### 情境交接
+
+| 情境 | SPFDisk 準備內容 | OS 安裝程式完成內容 |
+|------|------------------|---------------------|
+| Windows | 通常是 GPT/UEFI，包含 ESP、MSR、Windows 目標，以及可選的 Recovery/Data 空間 | Windows 檔案、依需求完成檔案系統設定、Windows Boot Manager 與復原設定 |
+| Linux | 依選定版面建立 ESP 或 BIOS boot partition，以及 root、home、swap 空間 | Linux 檔案、依需求完成檔案系統設定，以及 GRUB/systemd-boot 安裝與設定 |
+| macOS | GPT/GUID Partition Map、Apple APFS 類型的目標分割區，以及可選共用空間 | macOS 安裝、APFS 格式化、volume、Recovery 與 Apple boot components |
+| Multiboot | 共用或指定的 ESP 空間，以及各 OS 的獨立區域 | 每個官方安裝程式各自安裝 OS 與 bootloader；準備共用 ESP 本身不會安裝 bootloader |
+
+**macOS 邊界：** SPFDisk 不會格式化 APFS。APFS 必須由 macOS 安裝程式或 Disk Utility 格式化與建立。SPFDisk 也不會設定 Hackintosh/OpenCore、FileVault 或 macOS Recovery。
+
+### 安全要求
+
+每次版面變更都遵循以下順序：
+
+```text
+Snapshot → Draft → Preview → Backup → Dry Run → Explicit Confirmation → Write / Rollback
+```
+
+- 預設是唯讀或只預覽。備份與預覽都不能讓選錯目標變得安全。
+- 開發與自動化測試使用 image 檔。絕不可把真實系統碟當成測試 image。
+- 真實磁碟寫入仍屬高風險，必須通過適用的安全門檻、確認正確磁碟身份、把備份存到其他位置，並明確確認。不要只依 `/dev/sdX` 或磁碟代號選擇目標。
+- 進行真實磁碟操作前，視情況關閉應用程式並卸載分割區。現有版面或目標身份無法明確判定時，立即停止。
+- 不要因為 SPFDisk 寫入成功，就假設 OS 或 bootloader 已安裝。最後的 boot files 由對應 OS 安裝程式提供。
+- APFS 目標由 SPFDisk 準備，但不由 SPFDisk 格式化。
+
+### CLI 與 Image 快速開始
+
+CLI 適合用來做可重複的 image 預覽與測試：
 
 ```bash
 # 建置
 cargo build --release -p rspfdisk-cli
 
-# 預覽 Windows 標準分區（dry-run，不寫入）
+# 預覽 Windows 分割區版面（dry-run，不寫入）
 ./target/release/rspfdisk layout windows-standard test.img --dry-run
 
-# 寫入 GPT 到 8 GiB image
+# 只有在明確完成 image 確認後，才寫入 image 的 GPT
 ./target/release/rspfdisk layout windows-standard test.img \
   --write --yes-i-know-this-is-an-image
 
-# 檢視分割表
+# 檢查完成後的分割表
 ./target/release/rspfdisk inspect test.img
 
 # 啟動 TUI
@@ -43,76 +76,21 @@ cargo build --release -p rspfdisk-cli
 ./target/release/rspfdisk tui --image test.img
 ```
 
-### Linux 真實磁碟
+### 延伸閱讀
+
+- [可開機導引安裝](docs/bootable-guided-install.md) — 新手 checklist 與 OS 交接
+- [開機媒體](docs/boot-media.md) — ISO、USB 與 QEMU 開機路徑
+- [快速分區](docs/quick-layouts.md) — 草稿與對齊規則
+- [Windows 版面](docs/windows-layout.md)、[Linux 版面](docs/linux-layout.md) 與 [macOS 版面](docs/macos-layout.md) — 各情境細節
+- [安全性](docs/safety.md) — 寫入與復原限制
+
+### 測試套件
 
 ```bash
-# 列出區塊裝置
-sudo ./target/release/rspfdisk list
-
-# 檢視磁碟（預設唯讀）
-sudo ./target/release/rspfdisk inspect /dev/sdb
-
-# Dry-run 預覽分區
-sudo ./target/release/rspfdisk layout linux-ext4-home /dev/sdb --dry-run
-
-# 寫入可卸除測試碟（需 root + 備份 + 確認）
-sudo ./target/release/rspfdisk layout windows-standard /dev/sdb --write \
-  --confirm sdb
-```
-
-### 切換語系
-
-```bash
-# 英文
-RSPFDISK_LANG=en ./target/release/rspfdisk-tui
-
-# 繁體中文（預設，可不設定）
-RSPFDISK_LANG=zh-TW ./target/release/rspfdisk-tui
-```
-
-### 安全原則
-
-| 原則 | 強制方式 |
-|------|----------|
-| 預設唯讀 | 沒加 `--write` 就不會寫入 |
-| Image 確認 | `--yes-i-know-this-is-an-image` |
-| 真實磁碟確認 | `--confirm <磁碟代號>`（如 `--confirm sdb`） |
-| 系統碟保護 | 需加 `--accept-system-disk-risk` |
-| 寫入前自動備份 | 自動建立 `.rspbak` |
-| 寫入後驗證 | 寫入 GPT 後重新讀回驗證 |
-
-### 支援的模板
-
-```
-windows_uefi_standard     Windows 11/10 UEFI 標準分區
-windows_uefi_with_data    Windows + D 槽資料分區
-windows_legacy_mbr        Windows Legacy BIOS/MBR
-macos_apfs_target         macOS APFS 目標碟
-macos_apfs_shared_exfat   macOS + 共用 exFAT 資料
-linux_ext4_standard       Linux ext4 單系統
-linux_ext4_home           Linux ext4 + 獨立 /home
-linux_bios_gpt_biosboot   Linux BIOS+GPT+GRUB 開機
-```
-
-### 測試
-
-```bash
-cargo test --workspace              # 57 個快速測試
-cargo test --workspace -- --ignored  # 5 個慢速 image 寫入測試
+cargo test --workspace               # 快速測試
+cargo test --workspace -- --ignored  # 慢速 image 寫入測試
 cargo clippy --workspace -- -D warnings
 cargo fmt --check
-```
-
-### TUI 操作指南
-
-啟動 TUI 後，8 個螢幕的操作流程：
-
-```
-主選單 → [1] 磁碟列表 → [Enter] 分割表 → [F] 快速分區 → [Enter] 預覽
-                                                              ↓
-                                                        [E] 容量編輯器
-                                                        [B] 備份確認
-                                                        [W] 寫入確認
 ```
 
 ---

@@ -43,6 +43,31 @@ fn macos_apfs_no_format() {
 }
 
 #[test]
+fn fresh_windows_linux_multiboot_template() {
+    let template = load_template("../../templates/multiboot_windows_linux.toml").unwrap();
+    let draft = generate_layout(&template, &disk_512g(), None).unwrap();
+
+    assert_eq!(draft.partitions.len(), 6);
+    assert_eq!(draft.partitions[0].name, "EFI System");
+    assert!(draft.partitions[0].flags.iter().any(|flag| flag == "esp"));
+    assert_eq!(draft.partitions[1].name, "Microsoft Reserved");
+    assert_eq!(draft.partitions[2].name, "Windows");
+    assert_eq!(draft.partitions[2].filesystem.as_deref(), Some("none"));
+    assert_eq!(draft.partitions[3].name, "Linux Root");
+    assert_eq!(draft.partitions[3].filesystem.as_deref(), Some("ext4"));
+    assert_eq!(draft.partitions[5].name, "Shared Data");
+    assert!(draft.partitions[5].size_bytes > 0);
+
+    for pair in draft.partitions.windows(2) {
+        let previous_end = pair[0].start_lba + pair[0].size_bytes / 512;
+        assert!(
+            previous_end <= pair[1].start_lba,
+            "partitions must not overlap"
+        );
+    }
+}
+
+#[test]
 fn small_disk_rejection() {
     let template = load_template("../../templates/windows_uefi_standard.toml").unwrap();
     let small = DiskInfo {
@@ -59,4 +84,5 @@ fn template_registry_loads_all() {
     assert!(reg.get("windows_uefi_standard").is_ok());
     assert!(reg.get("linux_ext4_home").is_ok());
     assert!(reg.get("macos_apfs_target").is_ok());
+    assert!(reg.get("multiboot_windows_linux").is_ok());
 }

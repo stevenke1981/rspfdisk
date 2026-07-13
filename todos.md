@@ -77,10 +77,13 @@
 - [x] 支援 Linux ext4 單系統模板。
 - [x] 支援 Linux ext4 + home 模板。
 - [x] 支援 Linux BIOS + GPT biosboot 模板。
+- [x] 支援新磁碟 Windows + Linux 共用 ESP 多重開機模板。
 - [x] `fill` / `fill-minus` 會保留後續分割區與 1MiB 對齊 gap，避免草稿尾端超出 GPT usable range。
 
 ## TUI
 
+- [x] 新手情境首頁（Windows / Linux / macOS / 多重開機）。
+- [x] 情境流程強制先選擇並檢查磁碟或 image，不使用隱藏預設目標。
 - [x] 主選單（含目標磁碟顯示）。
 - [x] 快速分區精靈（Screen::QuickLayout）。
 - [x] Windows 模板選單。
@@ -102,6 +105,11 @@
 - [x] 寫 `tools/qemu-test.ps1` / `.sh`。
 - [x] QEMU BIOS 測試腳本。
 - [x] QEMU UEFI/OVMF 測試腳本。
+- [x] initramfs 納入 BusyBox、runtime 目錄與 ELF 動態依賴。
+- [x] ISO 打包拒絕沒有 GRUB bootloader 的非開機 fallback。
+- [x] USB image 產生真正的 UEFI GRUB2 ESP，且只接受 image 輸出。
+- [x] QEMU smoke 必須收到 `RSPFDISK_TUI_READY`，timeout 本身不算通過。
+- [ ] 在 Linux CI 或本機完成 BIOS/UEFI QEMU 實際開機驗收。
 
 ## Safety
 
@@ -125,3 +133,4 @@
 - [x] final.md 持續更新。
 - [x] 修正 i18n doctest 範例，workspace doctest 可完整通過。
 - [x] 8GiB slow image-write 測試改為 `#[ignore]`，由 release gate `--include-ignored` 執行。
+- [x] 新增中英文可開機導引安裝文件，明確區分 SPFDisk、GRUB2 媒體與 OS 安裝程式責任。

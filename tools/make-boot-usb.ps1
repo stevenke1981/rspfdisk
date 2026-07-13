@@ -15,10 +15,13 @@ $DistUsb = Join-Path $Root "dist\rspfdisk-boot-usb.img"
 function Test-BootBundle {
     $required = @(
         "boot\initramfs\init",
-        "tools\make-boot-usb.sh"
+        "boot\grub\grub.cfg",
+        "boot\rspfdisk-media",
+        "tools\make-boot-usb.sh",
+        "tools\lib\boot-common.sh"
     )
     foreach ($rel in $required) {
-        if (-not (Test-Path (Join-Path $Root $rel))) {
+        if (-not (Test-Path (Join-Path $Root $rel) -PathType Leaf)) {
             throw "missing boot file: $rel"
         }
     }
@@ -39,9 +42,20 @@ $wslPath = "/mnt/" + ($Root[0].ToString().ToLower()) + "/" + ($Root.Substring(3)
 $cmd = "cd '$wslPath' && bash tools/make-boot-usb.sh --size-mb $SizeMb"
 Write-Host "[boot] WSL: $cmd"
 wsl bash -lc $cmd
+$buildExit = $LASTEXITCODE
+if ($buildExit -ne 0) {
+    Write-Error "USB image build failed in WSL with exit code $buildExit. No image was reported as ready."
+    exit $buildExit
+}
 
-if (Test-Path $DistUsb) {
+if (Test-Path $DistUsb -PathType Leaf) {
+    $image = Get-Item -LiteralPath $DistUsb
+    if ($image.Length -le 0) {
+        Write-Error "USB builder returned success but produced an empty image: $DistUsb"
+        exit 1
+    }
     Write-Host "[boot] USB image ready: $DistUsb"
     exit 0
 }
+Write-Error "USB builder returned success but did not produce: $DistUsb"
 exit 1

@@ -3,26 +3,59 @@
 > A modern disk partition tool in Rust — MBR/GPT, quick OS templates, safe transactional writes, Chinese/English TUI.  
 > Inspired by the classic SPFDisk, built for modern UEFI/GPT/NVMe systems.
 
-**Version: v0.1.0** | [简体中文](README-zh-TW.md) | [spec.md](spec.md) | [CHANGELOG.md](CHANGELOG.md)
+**Version: v0.1.0** | [繁體中文](README-zh-TW.md) | [Bootable Guided Install](docs/bootable-guided-install.md) | [spec.md](spec.md) | [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
 ## For Humans
 
-### Features
+### Start Here: Bootable Guided Install
 
-- **Read** MBR and GPT partition tables with CRC validation
-- **Quick Layout Wizard** — 11 templates for Windows / macOS / Linux
-- **Safe Write** — image-only write, `--confirm`, auto-backup, read-back verification
-- **Backup/Restore** — `.rspbak` format with SHA256, disk identity check, dry-run
-- **TUI** — 8-screen Chinese/English terminal interface (ratatui + crossterm)
-- **CLI** — `list`, `inspect`, `backup`, `restore`, `layout`, `tui` subcommands
-- **Linux Real Disk** — `/dev` scanning, sysfs query, risk assessment, controlled write
-- **Boot Media** — boot ISO/USB scripts, QEMU smoke test
-- **UEFI** — `BOOTX64.EFI` read-only GPT viewer (PoC)
-- **i18n** — zh-TW (default) and English, switch via `RSPFDISK_LANG`
+SPFDisk is the **partition-preparation step**, not an operating system installer. It can inspect a disk, build a Windows/Linux/macOS/multiboot partition draft, show the changes, make a backup, and apply a permitted layout after explicit confirmation.
 
-### Quick Start
+It does **not** install Windows, Linux, or macOS. It also does not install Windows Boot Manager, Linux GRUB/systemd-boot, macOS boot components, or any other target-disk bootloader. GRUB2 on the SPFDisk media only boots the SPFDisk environment. After preparation, boot the appropriate official OS installer and let that installer complete the OS and bootloader work.
+
+For the complete newcomer walkthrough, see [Bootable Guided Install](docs/bootable-guided-install.md).
+
+### Guided Workflow
+
+1. **Boot the GRUB2 media.** Create or obtain the SPFDisk ISO/USB described in [boot media](docs/boot-media.md). In the firmware boot menu, select that media and choose the Rust SPFDisk guided/TUI entry from GRUB2. Use the CLI shell entry only for recovery or advanced work.
+2. **Select and inspect the target.** Confirm the disk model, capacity, serial or other identity details. Read the current MBR/GPT table before choosing a layout. Use an image file for practice and automated testing.
+3. **Choose a scenario.** Select **Windows**, **Linux**, **macOS**, or **Multiboot**, then choose the matching layout and capacity options. The scenario names are the user-facing choice; template identifiers are implementation details.
+4. **Preview the partition draft.** Review the partition table type, start and end sectors, sizes, alignment, filesystem/type notes, and the diff from the current disk. No write should happen during preview.
+5. **Back up before writing.** Create the `.rspbak` backup and keep a copy somewhere other than the target disk. Check the backup metadata and disk identity.
+6. **Dry-run and explicitly confirm.** Recheck the target and the final diff. Only the explicit confirmation step may authorize a permitted write. Cancel if the disk identity, layout, or intended OS is unclear.
+7. **Hand off to the OS installer.** Once the target has been prepared, reboot or power off, boot the official Windows, Linux, or macOS installer, select the intended prepared space, and follow that installer. For multiboot, install each OS separately and verify its target before continuing.
+
+### Scenario Handoff
+
+| Scenario | What SPFDisk prepares | What the OS installer completes |
+|----------|-----------------------|---------------------------------|
+| Windows | Usually GPT/UEFI with an ESP, MSR, Windows target, and optional recovery/data space | Windows files, filesystem setup as requested, Windows Boot Manager, and recovery configuration |
+| Linux | An ESP or BIOS boot partition plus root, home, and swap space according to the selected layout | Linux files, filesystem setup as requested, and GRUB/systemd-boot installation and configuration |
+| macOS | A GPT/GUID Partition Map layout with an Apple APFS target partition and optional shared space | macOS installation, APFS formatting, volumes, recovery, and Apple boot components |
+| Multiboot | Shared or selected ESP space plus separate areas for each operating system | Each official installer installs its own OS and bootloader; shared ESP preparation alone installs no bootloader |
+
+**macOS boundary:** SPFDisk does not format APFS. The macOS installer or Disk Utility must format and set up APFS. SPFDisk also does not configure Hackintosh/OpenCore, FileVault, or macOS recovery.
+
+### Safety Requirements
+
+Every layout change follows this order:
+
+```text
+Snapshot → Draft → Preview → Backup → Dry Run → Explicit Confirmation → Write / Rollback
+```
+
+- The default mode is read-only or preview-only. A backup and a preview do not make the wrong target safe.
+- Development and automated tests use image files. Never use a real system disk as a test image.
+- Real-disk writes remain high risk and require the applicable safety gate, correct disk identity, backup stored elsewhere, and explicit confirmation. Do not select a disk by `/dev/sdX` or a drive letter alone.
+- Close applications and unmount partitions where applicable before a real-disk operation. Stop when the current layout or target identity is not unambiguous.
+- Do not assume that a successful SPFDisk write installed an OS or bootloader. The final boot files come from the corresponding OS installer.
+- APFS targets are prepared but not formatted by SPFDisk.
+
+### CLI and Image Quick Start
+
+The CLI is useful for repeatable image-based previews and tests:
 
 ```bash
 # Build
@@ -31,74 +64,31 @@ cargo build --release -p rspfdisk-cli
 # Preview a Windows partition layout (dry-run, no write)
 ./target/release/rspfdisk layout windows-standard test.img --dry-run
 
-# Write GPT to an 8 GiB image
+# Write GPT to an image only after an explicit image confirmation
 ./target/release/rspfdisk layout windows-standard test.img \
   --write --yes-i-know-this-is-an-image
 
-# Inspect partition table
+# Inspect the resulting partition table
 ./target/release/rspfdisk inspect test.img
 
-# Launch TUI
+# Launch the TUI
 ./target/release/rspfdisk tui
 ./target/release/rspfdisk tui --image test.img
 ```
 
-### Linux Real Disk
+### Further Reading
 
-```bash
-# List block devices
-sudo ./target/release/rspfdisk list
-
-# Inspect a disk (read-only by default)
-sudo ./target/release/rspfdisk inspect /dev/sdb
-
-# Dry-run a layout
-sudo ./target/release/rspfdisk layout linux-ext4-home /dev/sdb --dry-run
-
-# Write to a removable test disk (requires root + backup + confirmation)
-sudo ./target/release/rspfdisk layout windows-standard /dev/sdb --write \
-  --confirm sdb
-```
-
-### Switch Language
-
-```bash
-# English
-RSPFDISK_LANG=en ./target/release/rspfdisk-tui
-RSPFDISK_LANG=en ./target/release/rspfdisk list
-
-# Default is zh-TW (Traditional Chinese)
-```
-
-### Safety First
-
-| Principle | Enforcement |
-|-----------|-------------|
-| Read-only by default | No `--write` = no writes |
-| Image confirmation | `--yes-i-know-this-is-an-image` for `.img` files |
-| Real disk confirmation | `--confirm <disk-name>` (e.g. `--confirm sdb`) |
-| System disk protection | Requires `--accept-system-disk-risk` |
-| Auto-backup before write | Creates `.rspbak` automatically |
-| Read-back verification | Verifies GPT after write |
-
-### Supported Templates
-
-```
-windows_uefi_standard     Windows 11/10 UEFI standard
-windows_uefi_with_data    Windows + D: data partition
-windows_legacy_mbr        Windows Legacy BIOS/MBR
-macos_apfs_target         macOS APFS target disk
-macos_apfs_shared_exfat   macOS + shared exFAT data
-linux_ext4_standard       Linux ext4 single system
-linux_ext4_home           Linux ext4 + /home
-linux_bios_gpt_biosboot   Linux BIOS+GPT+GRUB biosboot
-```
+- [Bootable Guided Install](docs/bootable-guided-install.md) — newcomer checklist and OS handoff
+- [Boot media](docs/boot-media.md) — ISO, USB, and QEMU boot path
+- [Quick layouts](docs/quick-layouts.md) — draft and alignment rules
+- [Windows layout](docs/windows-layout.md), [Linux layout](docs/linux-layout.md), and [macOS layout](docs/macos-layout.md) — scenario details
+- [Safety](docs/safety.md) — write and recovery constraints
 
 ### Test Suite
 
 ```bash
-cargo test --workspace              # 57 fast tests
-cargo test --workspace -- --ignored  # 5 slow image-write tests
+cargo test --workspace               # fast tests
+cargo test --workspace -- --ignored  # slow image-write tests
 cargo clippy --workspace -- -D warnings
 cargo fmt --check
 ```

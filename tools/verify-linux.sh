@@ -39,13 +39,9 @@ bash tools/qemu-test.sh --validate-only
 
 if [[ "${WITH_ISO}" -eq 1 ]]; then
     echo "=== Boot ISO build ==="
-    if [[ -f /boot/vmlinuz ]] || ls /boot/vmlinuz-* >/dev/null 2>&1; then
-        bash tools/make-boot-iso.sh
-        test -f dist/rspfdisk-boot.iso
-        echo "ISO size: $(du -h dist/rspfdisk-boot.iso | cut -f1)"
-    else
-        echo "SKIP: no kernel in /boot (install linux-image or set KERNEL=)"
-    fi
+    bash tools/make-boot-iso.sh
+    test -s dist/rspfdisk-boot.iso
+    echo "ISO size: $(du -h dist/rspfdisk-boot.iso | cut -f1)"
 fi
 
 if [[ "${WITH_QEMU}" -eq 1 ]]; then

@@ -6,6 +6,45 @@
 - 版本：v0.1.0
 - 實作範圍：Rust workspace、Disk Core、MBR/GPT、Layouts、Safety、Backup、CLI、TUI、Boot media、UEFI GPT viewer
 
+## 2026-07-14 — 無系統開機導引與多重開機流程
+
+**任務：** 讓新手可從 GRUB2 媒體直接進入 Rust SPFDisk，以 Windows、Linux、macOS 或多重開機情境準備分割區。
+
+**完成：**
+- TUI 首頁改為四情境導引；未選磁碟/image 時強制先選取並檢查目標，不再自動建立隱藏測試 image；磁碟列表提供可見且有邊界的上下選擇游標。
+- 新增 fresh-disk `multiboot_windows_linux` GPT/UEFI 模板，共用 ESP 並分離 Windows、Linux、swap 與共享資料空間。
+- GRUB2 預設啟動導引 TUI，提供標示為進階模式的 recovery shell，standalone loader 會以專案專用 marker 找到正確媒體。
+- initramfs 納入 BusyBox、runtime 目錄與 ELF 動態依賴；缺少必要工具時明確失敗。
+- ISO 只允許真正嵌入 GRUB2 的建置路徑；USB builder 以 rootless、image-only、atomic 流程建立 GPT/FAT32 UEFI GRUB2 image。
+- QEMU 必須在 serial log 收到 TUI 第一幀完成後的 `RSPFDISK_TUI_READY`；marker 前 timeout 視為失敗。
+- 中英文 README 與新手導引明確說明 SPFDisk 只準備分割區，OS 與目標 bootloader 仍由官方安裝媒體完成。
+
+**驗證：**
+```text
+cargo fmt --all -- --check                         → passed
+cargo test --workspace                             → passed（3 slow tests ignored）
+cargo test --workspace -- --include-ignored        → passed（含 3 slow image-write tests）
+cargo clippy --workspace -- -D warnings            → passed
+cargo build --workspace --release                  → passed
+Git Bash shell syntax check                        → passed
+make-boot-iso.ps1 -ValidateOnly                    → passed
+make-boot-usb.ps1 -ValidateOnly                    → passed
+qemu-test.ps1 -ValidateOnly                        → passed
+Markdown relative-link check                       → passed
+```
+
+**Release 產物：**
+- `target/codex-verify/release/rspfdisk.exe`
+- `target/codex-verify/release/rspfdisk-tui.exe`
+
+**尚待 Linux CI 證據：**
+- 本機沒有可用的 WSL distribution、QEMU/OVMF 與 Linux boot build runtime，因此本次未宣稱實際 BIOS/UEFI 開機通過。
+- Ubuntu `linux-acceptance` 已改為必要 job，會安裝 kernel、BusyBox、GRUB、USB 與 QEMU 依賴，實際建置 ISO/USB image，並分別以 BIOS ISO 與 OVMF UEFI USB 等待 TUI marker。
+
+**最終獨立審查：**
+- Luna xhigh reviewer 找到 GRUB root 猜測、recovery 唯讀誤稱、檢查失敗仍前進、USB UEFI 未實際開機四項問題。
+- 已改用 tracked media marker、標示 advanced recovery、阻擋檢查失敗流程，並新增 OVMF USB QEMU job；修正後 re-review 確認四項皆解除。
+
 ## 2026-07-10 — TUI image 寫入流程完成
 
 **任務：** 移除 WriteConfirm 的模擬成功行為，完成受控 image 寫入。

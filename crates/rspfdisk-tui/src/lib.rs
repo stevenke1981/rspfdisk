@@ -2,10 +2,11 @@
 //!
 //! Built with ratatui + crossterm. Supports Chinese (default) and English.
 //!
-//! ## Screens (8 total)
+//! ## Screens (9 total)
 //!
 //! | Screen         | Purpose                               |
 //! |----------------|---------------------------------------|
+//! | GuidedScenario | Choose Windows/Linux/macOS/multiboot  |
 //! | Main           | Menu — select disk or image           |
 //! | DiskList       | List block devices + enter image path |
 //! | PartTable      | Display MBR/GPT partitions            |
@@ -18,7 +19,7 @@
 //! ## Flow
 //!
 //! ```text
-//! Main → DiskList → PartTable → QuickLayout → Preview
+//! GuidedScenario → DiskList → QuickLayout → Preview
 //!                                                 ↓
 //!                                           SizeEditor
 //!                                           BackupConfirm
@@ -55,6 +56,7 @@ use rspfdisk_safety::{assess_disk, confirm_write, disk_confirmation_phrase, Conf
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Screen {
+    GuidedScenario,
     Main,
     DiskList,
     PartTable,
@@ -65,6 +67,45 @@ enum Screen {
     WriteConfirm,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum GuidedScenario {
+    Windows,
+    Linux,
+    Macos,
+    Multiboot,
+}
+
+impl GuidedScenario {
+    const ALL: [Self; 4] = [Self::Windows, Self::Linux, Self::Macos, Self::Multiboot];
+
+    fn label(self) -> &'static str {
+        match self {
+            Self::Windows => "Windows",
+            Self::Linux => "Linux",
+            Self::Macos => "macOS",
+            Self::Multiboot => "多重開機",
+        }
+    }
+
+    fn description(self) -> &'static str {
+        match self {
+            Self::Windows => "Windows 10/11 UEFI 標準分區",
+            Self::Linux => "Linux UEFI ext4 單系統",
+            Self::Macos => "macOS GPT/APFS 目標分區（不格式化 APFS）",
+            Self::Multiboot => "Windows + Linux GPT/UEFI 分區",
+        }
+    }
+
+    fn template_name(self) -> &'static str {
+        match self {
+            Self::Windows => "windows_uefi_standard",
+            Self::Linux => "linux_ext4_standard",
+            Self::Macos => "macos_apfs_target",
+            Self::Multiboot => "multiboot_windows_linux",
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Application state
 // ---------------------------------------------------------------------------
@@ -72,10 +113,12 @@ enum Screen {
 struct AppState {
     screen: Screen,
     disks: Vec<DiskInfo>,
+    disk_index: usize,
     selected_disk: Option<String>,
     selected_disk_info: Option<DiskInfo>,
     partitions_text: String,
     templates: Vec<String>,
+    guided_index: usize,
     selected_template: String,
     template_index: usize,
     draft: Option<LayoutDraft>,
@@ -103,29 +146,42 @@ impl AppState {
         reg.load_dir("../../templates").ok();
         let names: Vec<String> = reg.names().into_iter().map(|s| s.to_string()).collect();
 
+        let mut templates = if names.is_empty() {
+            vec![
+                "windows_uefi_standard".into(),
+                "windows_uefi_with_data".into(),
+                "windows_uefi_dual_boot".into(),
+                "macos_apfs_target".into(),
+                "macos_apfs_shared_exfat".into(),
+                "macos_apfs_reserve_windows".into(),
+                "linux_ext4_standard".into(),
+                "linux_ext4_home".into(),
+                "linux_btrfs_standard".into(),
+                "linux_bios_gpt_biosboot".into(),
+                "windows_legacy_mbr".into(),
+            ]
+        } else {
+            names
+        };
+
+        for scenario in GuidedScenario::ALL {
+            if !templates
+                .iter()
+                .any(|name| name == scenario.template_name())
+            {
+                templates.push(scenario.template_name().into());
+            }
+        }
+
         Self {
-            screen: Screen::Main,
+            screen: Screen::GuidedScenario,
             disks: vec![],
+            disk_index: 0,
             selected_disk: None,
             selected_disk_info: None,
             partitions_text: String::new(),
-            templates: if names.is_empty() {
-                vec![
-                    "windows_uefi_standard".into(),
-                    "windows_uefi_with_data".into(),
-                    "windows_uefi_dual_boot".into(),
-                    "macos_apfs_target".into(),
-                    "macos_apfs_shared_exfat".into(),
-                    "macos_apfs_reserve_windows".into(),
-                    "linux_ext4_standard".into(),
-                    "linux_ext4_home".into(),
-                    "linux_btrfs_standard".into(),
-                    "linux_bios_gpt_biosboot".into(),
-                    "windows_legacy_mbr".into(),
-                ]
-            } else {
-                names
-            },
+            templates,
+            guided_index: 0,
             selected_template: String::new(),
             template_index: 0,
             draft: None,
@@ -163,6 +219,7 @@ pub fn run(image_path: Option<&str>) -> Result<()> {
     crossterm::execute!(stdout, crossterm::terminal::EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+    let mut ready_marker_emitted = false;
 
     let mut state = AppState::new();
 
@@ -208,6 +265,7 @@ pub fn run(image_path: Option<&str>) -> Result<()> {
             // Body
             let body_area = chunks[1];
             match state.screen {
+                Screen::GuidedScenario => draw_guided_scenario(f, body_area, &state),
                 Screen::Main => draw_main(f, body_area, &state),
                 Screen::DiskList => draw_disk_list(f, body_area, &state),
                 Screen::PartTable => draw_part_table(f, body_area, &state),
@@ -221,6 +279,11 @@ pub fn run(image_path: Option<&str>) -> Result<()> {
             // Footer
             draw_footer(f, chunks[2], &state);
         })?;
+
+        if !ready_marker_emitted {
+            emit_boot_ready_marker();
+            ready_marker_emitted = true;
+        }
 
         // --- Input ---
         if event::poll(std::time::Duration::from_millis(100))? {
@@ -245,9 +308,79 @@ pub fn run(image_path: Option<&str>) -> Result<()> {
     Ok(())
 }
 
+#[cfg(target_os = "linux")]
+fn emit_boot_ready_marker() {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+
+    if let Ok(mut serial) = OpenOptions::new().write(true).open("/dev/ttyS0") {
+        let _ = writeln!(serial, "RSPFDISK_TUI_READY");
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn emit_boot_ready_marker() {}
+
 // ---------------------------------------------------------------------------
 // Draw helpers
 // ---------------------------------------------------------------------------
+
+fn draw_guided_scenario(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
+    let disk_label = state.selected_disk.as_deref().unwrap_or("（尚未選擇）");
+    let mut lines = vec![
+        Line::from(Span::styled(
+            "第一次使用：選擇要準備的系統",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )),
+        Line::from(format!("目標磁碟或 image: {disk_label}")),
+        Line::from(Span::raw("")),
+    ];
+
+    for (index, scenario) in GuidedScenario::ALL.iter().enumerate() {
+        let marker = if index == state.guided_index {
+            " ▶"
+        } else {
+            "  "
+        };
+        let style = if index == state.guided_index {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::Green)
+        };
+        lines.push(Line::from(vec![
+            Span::styled(
+                format!("{marker} [{}] {}", index + 1, scenario.label()),
+                style,
+            ),
+            Span::raw(format!(" — {}", scenario.description())),
+        ]));
+    }
+
+    lines.extend([
+        Line::from(Span::raw("")),
+        Line::from(Span::styled(
+            "[A] 進階模板列表",
+            Style::default().fg(Color::Blue),
+        )),
+        Line::from(Span::styled(
+            "[D] 選擇磁碟  [I] 輸入 image 路徑",
+            Style::default().fg(Color::Blue),
+        )),
+        Line::from(Span::styled(
+            "選擇後仍會先顯示草稿，寫入需要備份與明確確認。",
+            Style::default().fg(Color::DarkGray),
+        )),
+    ]);
+
+    let para = Paragraph::new(Text::from(lines))
+        .block(Block::default().borders(Borders::ALL).title("引導模式"))
+        .alignment(Alignment::Left);
+    f.render_widget(para, area);
+}
 
 fn draw_main(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
     let disk_label = state.selected_disk.as_deref().unwrap_or("（無）");
@@ -264,6 +397,10 @@ fn draw_main(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
         )),
         Line::from(Span::styled(
             "[F] 快速分區精靈",
+            Style::default().fg(Color::Green),
+        )),
+        Line::from(Span::styled(
+            "[G] 引導模式",
             Style::default().fg(Color::Green),
         )),
         Line::from(Span::raw("")),
@@ -291,6 +428,13 @@ fn draw_main(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
 
 fn draw_disk_list(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
     let mut lines: Vec<Line> = Vec::new();
+    if !state.message.is_empty() {
+        lines.push(Line::from(Span::styled(
+            state.message.as_str(),
+            Style::default().fg(Color::Yellow),
+        )));
+        lines.push(Line::from(Span::raw("")));
+    }
     if state.disks.is_empty() {
         lines.push(Line::from(Span::styled(
             "⚠️ 未偵測到區塊裝置（Windows 上需指定 image）",
@@ -301,17 +445,25 @@ fn draw_disk_list(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
     for (i, disk) in state.disks.iter().enumerate() {
         let size_gib = disk.size_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
         let label = format!(
-            "  [{}] {}  {:.1} GiB  sector={}",
+            "{} [{}] {}  {:.1} GiB  sector={}",
+            if i == state.disk_index { ">" } else { " " },
             i + 1,
             disk.path,
             size_gib,
             disk.logical_sector_size.bytes(),
         );
-        lines.push(Line::from(Span::raw(label)));
+        let style = if i == state.disk_index {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default()
+        };
+        lines.push(Line::from(Span::styled(label, style)));
     }
     lines.push(Line::from(Span::raw("")));
     lines.push(Line::from(Span::styled(
-        "[I] 輸入 image 路徑  [R] 重新掃描  [Enter] 選取  [Esc] 返回",
+        "[↑↓] 選擇  [I] 輸入 image 路徑  [R] 重新掃描  [Enter] 選取  [Esc] 返回",
         Style::default().fg(Color::Blue),
     )));
 
@@ -473,6 +625,9 @@ fn draw_write_confirm(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
 
 fn draw_footer(f: &mut ratatui::Frame, area: Rect, state: &AppState) {
     let help = match state.screen {
+        Screen::GuidedScenario => {
+            "↑↓:選擇 Enter:確認 1-4:直接選擇 A:進階模板 D:磁碟 I:image Esc:主選單"
+        }
         Screen::Main => "Q:離開 1:磁碟列表 2:分割表 F:快速分區 I:輸入image",
         Screen::DiskList => "I:輸入image R:重新掃描 Enter:選取 Esc:返回",
         Screen::PartTable => "F:快速分區 Esc:返回",
@@ -665,6 +820,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
 
 fn handle_key(state: &mut AppState, key: KeyCode) {
     match state.screen {
+        Screen::GuidedScenario => handle_guided_scenario(state, key),
         Screen::Main => handle_main(state, key),
         Screen::DiskList => handle_disk_list(state, key),
         Screen::PartTable => handle_part_table(state, key),
@@ -676,16 +832,76 @@ fn handle_key(state: &mut AppState, key: KeyCode) {
     }
 }
 
+fn handle_guided_scenario(state: &mut AppState, key: KeyCode) {
+    match key {
+        KeyCode::Up | KeyCode::Char('k') => {
+            state.guided_index = state.guided_index.saturating_sub(1);
+        }
+        KeyCode::Down | KeyCode::Char('j') => {
+            state.guided_index = (state.guided_index + 1).min(GuidedScenario::ALL.len() - 1);
+        }
+        KeyCode::Enter => {
+            let index = state.guided_index;
+            select_guided_scenario(state, index);
+        }
+        KeyCode::Char(c) if ('1'..='4').contains(&c) => {
+            select_guided_scenario(state, c as usize - '1' as usize);
+        }
+        KeyCode::Char('a') | KeyCode::Char('A') => {
+            state.selected_template.clear();
+            state.template_index = 0;
+            state.screen = Screen::QuickLayout;
+        }
+        KeyCode::Char('d') | KeyCode::Char('D') => open_disk_list(state),
+        KeyCode::Char('i') | KeyCode::Char('I') => begin_image_input(state),
+        KeyCode::Esc => state.screen = Screen::Main,
+        _ => {}
+    }
+}
+
+fn select_guided_scenario(state: &mut AppState, index: usize) {
+    let Some(scenario) = GuidedScenario::ALL.get(index).copied() else {
+        return;
+    };
+
+    let template_name = scenario.template_name();
+    if !state.templates.iter().any(|name| name == template_name) {
+        state.templates.push(template_name.to_string());
+    }
+    state.guided_index = index;
+    state.template_index = state
+        .templates
+        .iter()
+        .position(|name| name == template_name)
+        .expect("guided template was inserted into the template list");
+    state.selected_template = template_name.to_string();
+    if state.selected_disk.is_some() {
+        state.message.clear();
+        state.screen = Screen::QuickLayout;
+    } else {
+        state.message = "請先選擇並檢查目標磁碟或 image，再套用配置。".to_string();
+        open_disk_list(state);
+    }
+}
+
+fn open_disk_list(state: &mut AppState) {
+    state.disks = list_block_devices().unwrap_or_default();
+    state.disk_index = state.disk_index.min(state.disks.len().saturating_sub(1));
+    state.log(format!("掃描到 {} 個裝置", state.disks.len()));
+    state.screen = Screen::DiskList;
+}
+
+fn begin_image_input(state: &mut AppState) {
+    state.editing_image_path = true;
+    state.image_path_input.clear();
+    state.screen = Screen::DiskList;
+}
+
 fn handle_main(state: &mut AppState, key: KeyCode) {
     match key {
-        KeyCode::Char('1') => {
-            state.disks = list_block_devices().unwrap_or_default();
-            state.log(format!("掃描到 {} 個裝置", state.disks.len()));
-            state.screen = Screen::DiskList;
-        }
+        KeyCode::Char('1') => open_disk_list(state),
         KeyCode::Char('2') => {
-            if state.selected_disk.is_some() {
-                refresh_part_table(state);
+            if state.selected_disk.is_some() && refresh_part_table(state) {
                 state.screen = Screen::PartTable;
             } else {
                 state.message = "請先選取磁碟或 image！".to_string();
@@ -695,11 +911,10 @@ fn handle_main(state: &mut AppState, key: KeyCode) {
             state.template_index = 0;
             state.screen = Screen::QuickLayout;
         }
-        KeyCode::Char('i') | KeyCode::Char('I') => {
-            state.editing_image_path = true;
-            state.image_path_input.clear();
-            state.screen = Screen::DiskList;
+        KeyCode::Char('g') | KeyCode::Char('G') => {
+            state.screen = Screen::GuidedScenario;
         }
+        KeyCode::Char('i') | KeyCode::Char('I') => begin_image_input(state),
         KeyCode::Char('q') | KeyCode::Char('Q') => {}
         _ => {}
     }
@@ -707,12 +922,19 @@ fn handle_main(state: &mut AppState, key: KeyCode) {
 
 fn handle_disk_list(state: &mut AppState, key: KeyCode) {
     match key {
+        KeyCode::Up | KeyCode::Char('k') if !state.editing_image_path => {
+            state.disk_index = state.disk_index.saturating_sub(1);
+        }
+        KeyCode::Down | KeyCode::Char('j') if !state.editing_image_path => {
+            state.disk_index = (state.disk_index + 1).min(state.disks.len().saturating_sub(1));
+        }
         KeyCode::Char('i') | KeyCode::Char('I') => {
             state.editing_image_path = true;
             state.image_path_input.clear();
         }
         KeyCode::Char('r') | KeyCode::Char('R') => {
             state.disks = list_block_devices().unwrap_or_default();
+            state.disk_index = state.disk_index.min(state.disks.len().saturating_sub(1));
             state.log(format!("重新掃描: {} 個裝置", state.disks.len()));
         }
         KeyCode::Enter => {
@@ -721,20 +943,21 @@ fn handle_disk_list(state: &mut AppState, key: KeyCode) {
                 if Path::new(&p).exists() {
                     state.selected_disk = Some(p.clone());
                     state.log(format!("選取 image: {p}"));
-                    refresh_part_table(state);
-                    state.editing_image_path = false;
-                    state.screen = Screen::PartTable;
+                    if refresh_part_table(state) {
+                        state.editing_image_path = false;
+                        state.screen = next_screen_after_target_selection(state);
+                    }
                 } else {
                     state.log(format!("檔案不存在: {p}"));
                 }
             } else if !state.disks.is_empty() {
-                // Select first disk (simplified: in a real TUI you'd use a list cursor)
-                let disk = &state.disks[0];
+                let disk = &state.disks[state.disk_index];
                 state.selected_disk = Some(disk.path.clone());
                 state.selected_disk_info = Some(disk.clone());
                 state.log(format!("選取磁碟: {}", disk.path));
-                refresh_part_table(state);
-                state.screen = Screen::PartTable;
+                if refresh_part_table(state) {
+                    state.screen = next_screen_after_target_selection(state);
+                }
             }
         }
         KeyCode::Esc => {
@@ -752,6 +975,14 @@ fn handle_disk_list(state: &mut AppState, key: KeyCode) {
             state.image_path_input.pop();
         }
         _ => {}
+    }
+}
+
+fn next_screen_after_target_selection(state: &AppState) -> Screen {
+    if state.selected_template.is_empty() {
+        Screen::PartTable
+    } else {
+        Screen::QuickLayout
     }
 }
 
@@ -1081,12 +1312,13 @@ fn write_confirmed_image(state: &AppState) -> Result<usize> {
 // Business logic helpers
 // ---------------------------------------------------------------------------
 
-fn refresh_part_table(state: &mut AppState) {
+fn refresh_part_table(state: &mut AppState) -> bool {
     let path = match state.selected_disk.as_ref() {
         Some(p) => p.clone(),
         None => {
             state.partitions_text = "未選取磁碟".to_string();
-            return;
+            state.message = state.partitions_text.clone();
+            return false;
         }
     };
 
@@ -1094,7 +1326,8 @@ fn refresh_part_table(state: &mut AppState) {
         Ok(d) => d,
         Err(e) => {
             state.partitions_text = format!("無法開啟 {path}: {e}");
-            return;
+            state.message = state.partitions_text.clone();
+            return false;
         }
     };
 
@@ -1108,7 +1341,8 @@ fn refresh_part_table(state: &mut AppState) {
             Ok(mbr) => mbr,
             Err(e) => {
                 state.partitions_text = format!("無法解析分割表: {e}");
-                return;
+                state.message = state.partitions_text.clone();
+                return false;
             }
         },
     };
@@ -1146,10 +1380,15 @@ fn refresh_part_table(state: &mut AppState) {
     }
 
     state.partitions_text = text;
+    state.message.clear();
+    true
 }
 
 fn generate_draft(state: &AppState, template_name: &str) -> Result<LayoutDraft> {
-    let path = state.selected_disk.as_deref().unwrap_or("test-empty.img");
+    let path = state
+        .selected_disk
+        .as_deref()
+        .ok_or_else(|| anyhow::anyhow!("請先選擇目標磁碟或 image"))?;
 
     // Try loading template from file, then from registry
     let template_path = Path::new("templates").join(format!("{template_name}.toml"));
@@ -1169,9 +1408,8 @@ fn generate_draft(state: &AppState, template_name: &str) -> Result<LayoutDraft> 
         }
     };
 
-    // Auto-create 8GiB image for testing
     if !Path::new(path).exists() {
-        rspfdisk_disk::test_helpers::create_test_image(path, 8 * 1024 * 1024 * 1024)?;
+        anyhow::bail!("目標不存在: {path}");
     }
 
     let device = open_read_only(path).map_err(|e| anyhow::anyhow!("{e}"))?;
@@ -1187,13 +1425,14 @@ fn generate_draft(state: &AppState, template_name: &str) -> Result<LayoutDraft> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rspfdisk_core::{BootMode, PartitionDraft, PartitionTableKind, PartitionType};
+    use rspfdisk_core::{BootMode, PartitionDraft, PartitionTableKind, PartitionType, SectorSize};
 
     /// Helper: create an AppState with a known template list and draft.
     fn test_state() -> AppState {
         AppState {
             screen: Screen::Main,
             disks: vec![],
+            disk_index: 0,
             selected_disk: Some("/dev/test".into()),
             selected_disk_info: None,
             partitions_text: String::new(),
@@ -1202,6 +1441,7 @@ mod tests {
                 "windows_uefi_dual_boot".into(),
                 "linux_ext4_standard".into(),
             ],
+            guided_index: 0,
             selected_template: String::new(),
             template_index: 0,
             draft: None,
@@ -1218,6 +1458,19 @@ mod tests {
             editor_error: None,
             backup_status: String::new(),
             backup_path: None,
+        }
+    }
+
+    fn test_disk(path: &str) -> DiskInfo {
+        DiskInfo {
+            path: path.into(),
+            size_bytes: 64 * 1024 * 1024,
+            logical_sector_size: SectorSize::S512,
+            physical_sector_size: Some(SectorSize::S512),
+            model: None,
+            serial: None,
+            removable: true,
+            read_only: false,
         }
     }
 
@@ -1266,6 +1519,158 @@ mod tests {
     // -----------------------------------------------------------------------
     // Screen navigation
     // -----------------------------------------------------------------------
+
+    #[test]
+    fn new_app_starts_in_guided_scenario() {
+        let state = AppState::new();
+
+        assert_eq!(state.screen, Screen::GuidedScenario);
+        assert_eq!(state.guided_index, 0);
+        assert!(state
+            .templates
+            .iter()
+            .any(|name| name == "multiboot_windows_linux"));
+    }
+
+    #[test]
+    fn disk_list_cursor_selects_the_highlighted_disk() {
+        let mut state = test_state();
+        state.screen = Screen::DiskList;
+        state.selected_disk = None;
+        state.disks = vec![test_disk("first.img"), test_disk("second.img")];
+
+        handle_disk_list(&mut state, KeyCode::Down);
+        assert_eq!(state.disk_index, 1);
+
+        handle_disk_list(&mut state, KeyCode::Enter);
+        assert_eq!(state.selected_disk.as_deref(), Some("second.img"));
+    }
+
+    #[test]
+    fn disk_list_cursor_stays_within_bounds() {
+        let mut state = test_state();
+        state.screen = Screen::DiskList;
+        state.disks = vec![test_disk("only.img")];
+
+        handle_disk_list(&mut state, KeyCode::Up);
+        handle_disk_list(&mut state, KeyCode::Down);
+
+        assert_eq!(state.disk_index, 0);
+    }
+
+    #[test]
+    fn disk_list_blocks_guided_flow_when_inspection_fails() {
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        let id = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock before Unix epoch")
+            .as_nanos();
+        let image_path = std::env::temp_dir().join(format!("rspfdisk-malformed-{id}.img"));
+        std::fs::write(&image_path, vec![0xff; 4096]).unwrap();
+
+        let mut state = test_state();
+        state.screen = Screen::DiskList;
+        state.selected_disk = None;
+        state.selected_template = "windows_uefi_standard".into();
+        state.editing_image_path = true;
+        state.image_path_input = image_path.to_string_lossy().into_owned();
+
+        handle_disk_list(&mut state, KeyCode::Enter);
+
+        assert_eq!(state.screen, Screen::DiskList);
+        assert!(state.message.contains("無法解析分割表"));
+        std::fs::remove_file(image_path).ok();
+    }
+
+    #[test]
+    fn guided_scenarios_map_to_stable_template_names() {
+        assert_eq!(
+            GuidedScenario::Windows.template_name(),
+            "windows_uefi_standard"
+        );
+        assert_eq!(GuidedScenario::Linux.template_name(), "linux_ext4_standard");
+        assert_eq!(GuidedScenario::Macos.template_name(), "macos_apfs_target");
+        assert_eq!(
+            GuidedScenario::Multiboot.template_name(),
+            "multiboot_windows_linux"
+        );
+    }
+
+    #[test]
+    fn guided_scenario_down_and_enter_select_multiboot_template() {
+        let mut state = test_state();
+        state.screen = Screen::GuidedScenario;
+
+        for _ in 0..3 {
+            handle_guided_scenario(&mut state, KeyCode::Down);
+        }
+        assert_eq!(state.guided_index, 3);
+
+        handle_guided_scenario(&mut state, KeyCode::Enter);
+
+        assert_eq!(state.screen, Screen::QuickLayout);
+        assert_eq!(state.selected_template, "multiboot_windows_linux");
+        assert_eq!(
+            state.templates[state.template_index],
+            "multiboot_windows_linux"
+        );
+    }
+
+    #[test]
+    fn guided_scenario_number_selects_windows_template() {
+        let mut state = test_state();
+        state.screen = Screen::GuidedScenario;
+
+        handle_guided_scenario(&mut state, KeyCode::Char('1'));
+
+        assert_eq!(state.screen, Screen::QuickLayout);
+        assert_eq!(state.selected_template, "windows_uefi_standard");
+        assert_eq!(state.template_index, 0);
+    }
+
+    #[test]
+    fn guided_scenario_requires_target_before_layout() {
+        let mut state = test_state();
+        state.screen = Screen::GuidedScenario;
+        state.selected_disk = None;
+
+        handle_guided_scenario(&mut state, KeyCode::Char('1'));
+
+        assert_eq!(state.screen, Screen::DiskList);
+        assert_eq!(state.selected_template, "windows_uefi_standard");
+        assert!(state.message.contains("請先選擇"));
+    }
+
+    #[test]
+    fn guided_target_selection_continues_to_selected_layout() {
+        let mut state = test_state();
+        state.selected_template = "linux_ext4_standard".into();
+
+        assert_eq!(
+            next_screen_after_target_selection(&state),
+            Screen::QuickLayout
+        );
+
+        state.selected_template.clear();
+        assert_eq!(
+            next_screen_after_target_selection(&state),
+            Screen::PartTable
+        );
+    }
+
+    #[test]
+    fn guided_scenario_a_opens_advanced_template_list() {
+        let mut state = test_state();
+        state.screen = Screen::GuidedScenario;
+        state.guided_index = 2;
+
+        handle_guided_scenario(&mut state, KeyCode::Char('a'));
+
+        assert_eq!(state.screen, Screen::QuickLayout);
+        assert_eq!(state.template_index, 0);
+        assert!(state.selected_template.is_empty());
+    }
 
     #[test]
     fn main_screen_f_key_goes_to_quick_layout() {

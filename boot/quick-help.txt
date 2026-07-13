@@ -1,8 +1,20 @@
-Rust SPFDisk — 快速說明
+Rust SPFDisk — 開機快速說明
 
-[F] 快速分區精靈
-[1] Windows  [2] macOS  [3] Linux
-[Q] 離開
+GRUB 選單:
+  Start Rust SPFDisk guided TUI (recommended)
+    進入引導式分區準備流程，這是預設選項。
+  Recovery shell: rspfdisk CLI (advanced; normal write safety flags still apply)
+    進入命令列復原環境；可用 rspfdisk 檢查磁碟或 image。
 
-預設唯讀。寫入需明確確認。
-image 測試: rspfdisk layout windows-standard /path/disk.img --dry-run
+引導式流程:
+  選取磁碟或 image -> 選擇模板 -> 檢視草稿 -> 備份 -> 明確確認
+  TUI 中按 Q 離開。啟動本身不會寫入磁碟。
+
+CLI 範例:
+  rspfdisk list
+  rspfdisk inspect /path/to/disk.img
+  rspfdisk layout windows-standard /path/to/disk.img --dry-run
+
+安全提醒:
+  預設唯讀；測試只使用 image。不要把測試 image 路徑換成實體磁碟。
+  SPFDisk 只準備分區；Windows、Linux、macOS 安裝仍由各自安裝媒體完成。

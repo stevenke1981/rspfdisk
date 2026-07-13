@@ -6,6 +6,7 @@ main() {
     require_cmd cargo
     require_cmd cpio
     require_cmd gzip
+    require_cmd ldd
     ensure_dirs
 
     local bin_dir stage cpio

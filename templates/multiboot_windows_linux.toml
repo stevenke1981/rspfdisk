@@ -1,0 +1,48 @@
+name = "multiboot_windows_linux"
+display_name = "Windows + Linux UEFI 雙系統（新磁碟）"
+table = "gpt"
+boot_mode = "uefi"
+min_disk_size = "256GiB"
+
+[[partitions]]
+name = "EFI System"
+size = "512MiB"
+type = "esp"
+filesystem = "fat32"
+mount = "/boot/efi"
+flags = ["boot", "esp"]
+note = "Windows Boot Manager 與 GRUB2 共用；由安裝程式寫入各自的 EFI 檔案"
+
+[[partitions]]
+name = "Microsoft Reserved"
+size = "16MiB"
+type = "msr"
+filesystem = "none"
+
+[[partitions]]
+name = "Windows"
+size = "120GiB"
+type = "microsoft-basic-data"
+filesystem = "none"
+note = "交給 Windows Setup 格式化為 NTFS 並安裝 Windows"
+
+[[partitions]]
+name = "Linux Root"
+size = "64GiB"
+type = "linux-filesystem"
+filesystem = "ext4"
+mount = "/"
+note = "交給 Linux 安裝程式格式化並安裝系統"
+
+[[partitions]]
+name = "Linux Swap"
+size = "auto:swap"
+type = "linux-swap"
+filesystem = "swap"
+
+[[partitions]]
+name = "Shared Data"
+size = "fill"
+type = "microsoft-basic-data"
+filesystem = "none"
+note = "可由安裝程式或系統工具格式化為 exFAT/NTFS，供多系統共用"
